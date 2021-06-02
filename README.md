@@ -43,7 +43,8 @@ It monitors the Pageant queries (from Putty or compatible SSH Windows clients) a
 To run from source :
 
 * Python3 >= 3.6
-* pyscard
-* cryptography
+* wxPython 4.1.1
+* pyscard 2.0.0
+* cryptography 3.4.6
 
 To build the binaries, you need Python 3.8 and Pyinstaller. Start the Build-Windows.bat script in the *package* directory. Output result in the *dist* directory.
