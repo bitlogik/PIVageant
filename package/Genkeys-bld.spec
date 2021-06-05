@@ -6,7 +6,7 @@ from _version import __version__
 
 FILE_NAME= "Gen-keys"
 FILE_DESCRIPTION = "Generate keys in PIV for PIVageant application"
-COMMENTS =  "Gen-keys : PIV key generation for Windows SSH agent"
+COMMENTS =  "Gen-keys : PIV key generation"
 
 
 pkgs_remove = [
