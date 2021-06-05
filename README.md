@@ -3,7 +3,7 @@
 
 Pageant compatible SSH agent for Windows
 
-using Yubico YubiKey 5 security dongles, PIV application
+using [Yubico YubiKey 5 security dongles](https://www.yubico.com/products/yubikey-5-overview/), PIV application
 
 ![PIVageant logo](windesign/pivpagent-logo.png)
 
@@ -36,11 +36,17 @@ Run *PIVageant.exe*
 
 or `python3w PIVageant.pyw` from source
 
-It monitors the Pageant queries (from Putty or compatible SSH Windows clients) and redirects the signature to a Yubico 5 PIV key.
+After detecting your Yubico, it hides automatically to tray. Then monitors the Pageant queries (from Putty or compatible SSH Windows clients) and redirects the signature to a Yubico 5 PIV key.
+
+When minimized, it goes to the tray icons bar. Any click on the icon restore the window.
 
 ## Development
 
 To run from source :
+
+`python3 setup.py install`
+
+or install :
 
 * Python3 >= 3.6
 * wxPython 4.1.1
