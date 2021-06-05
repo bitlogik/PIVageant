@@ -25,6 +25,7 @@ import mainwin
 import pageant_win
 import pageantclient
 from _version import __version__
+from getwin import check_pageant_running
 from systemtray import PIVagTray
 from piv_card import PIVCardException, PIVCardTimeoutException
 
@@ -170,6 +171,14 @@ def mainapp():
     app = wx.App()
     ctypes.windll.shcore.SetProcessDpiAwareness(True)
 
+    # Check if a Pageant is running
+    if check_pageant_running():
+        wx.MessageBox(
+            "A Pageant process is already running.",
+            "PIVageant info",
+            wx.OK | wx.ICON_WARNING | wx.STAY_ON_TOP,
+        )
+        return
 
     app.main_frame = PIVageantwin(None)
     app.main_frame.SetTitle(f"PIVageant  -  {__version__}")
