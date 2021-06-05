@@ -67,10 +67,14 @@ def main():
     print("\n PIVageant Gen-keys version ", __version__)
     print("Waiting for a Yubico 5 ...")
     print(" press CTRL+C to cancel")
-    try:
-        current_card = piv_card.PIVcard(15)
-    except KeyboardInterrupt:
-        return
+    current_card = None
+    while not current_card:
+        try:
+            current_card = piv_card.PIVcard(1)
+        except KeyboardInterrupt:
+            return
+        except piv_card.PIVCardTimeoutException:
+            continue
     print("OK, Yubico 5 with PIV detected")
     admin_keyref = 0x9B
     algo_used = 0x03
