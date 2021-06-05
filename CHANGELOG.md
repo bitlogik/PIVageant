@@ -5,7 +5,8 @@
 
 on 7 June 2021
 
-* Updated logo
+* Updated new logo
+* Improve logo loading method
 * FileInfo and better version management
 * Fix CTRL+C to exit in Gen-keys
 * Use task bar tray icon
