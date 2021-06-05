@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-# Pageant SSH agent with PIV dongle Yubico 5
+# PIVageant
+# a Pageant SSH agent with PIV dongle Yubico 5
 # Copyright (C) 2021  BitLogiK
 #
 # This program is free software: you can redistribute it and/or modify
