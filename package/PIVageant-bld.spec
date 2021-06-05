@@ -1,6 +1,13 @@
 # -*- mode: python ; coding: utf-8 -*-
 
 import os
+from package.build_win_verinfo import fill_version_info
+from _version import __version__
+
+FILE_NAME= "PIVageant"
+FILE_DESCRIPTION = "PIVageant application executable"
+COMMENTS =  "PIVageant : Windows SSH agent with PIV dongle"
+
 
 pkgs_remove = [
     "sqlite3",
@@ -43,6 +50,10 @@ for pkg in pkgs_remove:
 
 pyz = PYZ(dataset.pure, dataset.zipped_data, cipher=None)
 
+file_version = __version__
+
+fill_version_info(FILE_NAME, file_version, FILE_DESCRIPTION, COMMENTS)
+
 exe = EXE(
     pyz,
     dataset.scripts,
@@ -50,7 +61,7 @@ exe = EXE(
     dataset.zipfiles,
     dataset.datas,
     [],
-    name="PIVageant",
+    name=FILE_NAME,
     debug=False,
     bootloader_ignore_signals=False,
     icon="../res/pivageant.ico",
@@ -58,4 +69,5 @@ exe = EXE(
     upx=True,
     upx_exclude=[],
     console=False,
+    version="version_info"
 )

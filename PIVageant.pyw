@@ -24,7 +24,7 @@ import wx.lib.newevent
 import mainwin
 import pageant_win
 import pageantclient
-
+from _version import __version__
 from piv_card import PIVCardException, PIVCardTimeoutException
 
 KEY_NAME = "yub384"

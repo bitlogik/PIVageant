@@ -18,7 +18,7 @@
 
 import base64
 import subprocess
-
+from _version import __version__
 import piv_card
 
 ADMIN_KEY = "010203040506070801020304050607080102030405060708"
@@ -64,6 +64,7 @@ fake_or_PKI = "fake"
 
 
 def main():
+    print("\n PIVageant Gen-keys version ", __version__)
     print("Waiting for a Yubico 5 ...")
     print(" press CTRL+C to cancel")
     try:

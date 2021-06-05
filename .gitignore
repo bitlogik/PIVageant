@@ -1,3 +1,4 @@
 ﻿__pycache__
 build
 dist
+package/version_info

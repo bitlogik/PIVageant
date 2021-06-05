@@ -48,7 +48,7 @@
             <property name="size">581,318</property>
             <property name="style">wxCAPTION|wxCLOSE_BOX|wxMINIMIZE_BOX|wxSYSTEM_MENU</property>
             <property name="subclass">; ; forward_declare</property>
-            <property name="title">PIVageant</property>
+            <property name="title"></property>
             <property name="tooltip"></property>
             <property name="window_extra_style"></property>
             <property name="window_name"></property>
