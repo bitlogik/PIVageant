@@ -79,11 +79,14 @@ class PIVageant ( wx.Frame ):
 class ModalDialog ( wx.Dialog ):
 
     def __init__( self, parent ):
-        wx.Dialog.__init__ ( self, parent, id = wx.ID_ANY, title = u"Signature requested", pos = wx.DefaultPosition, size = wx.Size( 482,172 ), style = wx.CAPTION|wx.STAY_ON_TOP )
+        wx.Dialog.__init__ ( self, parent, id = wx.ID_ANY, title = u"Signature requested", pos = wx.DefaultPosition, size = wx.Size( 482,182 ), style = wx.CAPTION|wx.STAY_ON_TOP )
 
         self.SetSizeHints( wx.DefaultSize, wx.DefaultSize )
 
         bSizer2 = wx.BoxSizer( wx.VERTICAL )
+
+
+        bSizer2.Add( ( 0, 10), 1, wx.EXPAND, 5 )
 
         self.static_text_modal = wx.StaticText( self, wx.ID_ANY, u"Touch the button to sign as user", wx.DefaultPosition, wx.DefaultSize, 0 )
         self.static_text_modal.Wrap( -1 )
@@ -115,14 +118,14 @@ class ModalDialog ( wx.Dialog ):
         self.Centre( wx.BOTH )
 
         # Connect Events
-        self.cancel_btn.Bind( wx.EVT_BUTTON, self.cancel_sign )
+        self.cancel_btn.Bind( wx.EVT_BUTTON, self.end_sign )
 
     def __del__( self ):
         pass
 
 
     # Virtual event handlers, overide them in your derived class
-    def cancel_sign( self, event ):
+    def end_sign( self, event ):
         event.Skip()
 
 

@@ -25,6 +25,7 @@ import mainwin
 import pageant_win
 import pageantclient
 from _version import __version__
+from systemtray import PIVagTray
 from piv_card import PIVCardException, PIVCardTimeoutException
 
 KEY_NAME = "yub384"
@@ -42,8 +43,9 @@ DEBUG_OUTPUT = is_tty()
 
 
 class ModalWait(mainwin.ModalDialog):
-    def cancel_sign(self, event):
-        event.Skip()
+    def end_sign(self, event):
+        if event:
+            event.Skip()
         self.Destroy()
 
 
@@ -63,7 +65,7 @@ class PIVageantwin(mainwin.PIVageant):
             self.sign_status,
             self.end_status,
         )
-        self.change_status("Ready")
+        self.change_status("Key read, closing to tray")
         self.cpy_btn.Enable()
         wx.CallAfter(pageant_win.MainWin, pageant_win.gen_cb(process_cb))
 
@@ -83,7 +85,16 @@ class PIVageantwin(mainwin.PIVageant):
 
     def end_status(self, data_text):
         self.change_status(data_text)
+        # save main windows status for selective hide
+        is_disp = self.IsShownOnScreen()
+        if not is_disp:
+            self.Lower()
+            self.SetTransparent(0)
+        self.Show(True)
         self.sign_alert.Destroy()
+        if not is_disp:
+            self.Hide()
+            self.SetTransparent(255)
         wx.CallLater(3500, self.change_status, "Ready")
 
     def print_pubkey(self, pubkey_value):
@@ -93,13 +104,18 @@ class PIVageantwin(mainwin.PIVageant):
         # Process PIVkey events
         if event.type == "Connected":
             self.go_start(event.data)
+            wx.CallLater(3500, self.change_status, "Ready")
+            wx.CallLater(850, self.sendtray, None)
             return
         if event.type == "Timeout":
-            waiting_for_pivkey()
+            waiting_for_pivkey(self)
             return
         if event.type == "Error":
             self.change_status(event.data)
             return
+
+    def sendtray(self, _):
+        wx.CallLater(400, self.Hide)
 
     def closing(self, event):
         agent_win_id = pageant_win.get_window_id()
@@ -107,6 +123,8 @@ class PIVageantwin(mainwin.PIVageant):
             pageant_win.close_window(agent_win_id)
         if hasattr(event, "Skip"):
             event.Skip()
+        self.trayicon.RemoveIcon()
+        self.trayicon.Destroy()
 
     def get_pubkey(self):
         try:
@@ -127,8 +145,8 @@ class PIVageantwin(mainwin.PIVageant):
                 )
 
 
-def waiting_for_pivkey():
-    wx.CallLater(250, app.main_frame.get_pubkey)
+def waiting_for_pivkey(curr_frame):
+    wx.CallLater(250, curr_frame.get_pubkey)
 
 
 def get_path(fpath):
@@ -137,29 +155,37 @@ def get_path(fpath):
     return fpath
 
 
-if __name__ == "__main__":
+PivKeyEvent, EVT_PIVKEY_EVENT = wx.lib.newevent.NewEvent()
+# PIVKEY_EVENT Attribute type :
+# "Timeout" (no key connected yey)
+# "Connected"
+# "Error"
+# "Signed"
+# Attribute data :
+# for type Error : error message
+# for type Connected : public_key
 
-    PivKeyEvent, EVT_PIVKEY_EVENT = wx.lib.newevent.NewEvent()
-    # PIVKEY_EVENT Attribute type :
-    # "Timeout" (no key connected yey)
-    # "Connected"
-    # "Error"
-    # "Signed"
-    # Attribute data :
-    # for type Error : error message
-    # for type Connected : public_key
 
+def mainapp():
+    app = wx.App()
     ctypes.windll.shcore.SetProcessDpiAwareness(True)
 
-    app = wx.App()
+
     app.main_frame = PIVageantwin(None)
-    icon_file = get_path("res\pivageant.ico")
-    app.main_frame.SetIcon(wx.Icon(icon_file))
+    app.main_frame.SetTitle(f"PIVageant  -  {__version__}")
+    icon_file = get_path("res\\pivageant.ico")
+    app.main_frame.SetIcons(wx.IconBundle(icon_file))
     app.main_frame.Show()
     app.main_frame.Bind(wx.EVT_CLOSE, app.main_frame.closing)
+    app.main_frame.Bind(wx.EVT_ICONIZE, app.main_frame.sendtray)
     app.main_frame.Bind(EVT_PIVKEY_EVENT, app.main_frame.get_event)
+    app.main_frame.trayicon = PIVagTray(app.main_frame, icon_file)
 
     app.main_frame.Update()
-    waiting_for_pivkey()
+    waiting_for_pivkey(app.main_frame)
 
     app.MainLoop()
+
+
+if __name__ == "__main__":
+    mainapp()

@@ -360,7 +360,7 @@
             <property name="minimum_size"></property>
             <property name="name">ModalDialog</property>
             <property name="pos"></property>
-            <property name="size">482,172</property>
+            <property name="size">482,182</property>
             <property name="style">wxCAPTION|wxSTAY_ON_TOP</property>
             <property name="subclass">; ; forward_declare</property>
             <property name="title">Signature requested</property>
@@ -373,6 +373,16 @@
                 <property name="name">bSizer2</property>
                 <property name="orient">wxVERTICAL</property>
                 <property name="permission">none</property>
+                <object class="sizeritem" expanded="1">
+                    <property name="border">5</property>
+                    <property name="flag">wxEXPAND</property>
+                    <property name="proportion">1</property>
+                    <object class="spacer" expanded="1">
+                        <property name="height">10</property>
+                        <property name="permission">protected</property>
+                        <property name="width">0</property>
+                    </object>
+                </object>
                 <object class="sizeritem" expanded="1">
                     <property name="border">5</property>
                     <property name="flag">wxALL|wxALIGN_CENTER_HORIZONTAL</property>
@@ -649,7 +659,7 @@
                         <property name="window_extra_style"></property>
                         <property name="window_name"></property>
                         <property name="window_style"></property>
-                        <event name="OnButtonClick">cancel_sign</event>
+                        <event name="OnButtonClick">end_sign</event>
                     </object>
                 </object>
             </object>
