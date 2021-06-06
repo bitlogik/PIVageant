@@ -28,7 +28,7 @@ import pageantclient
 from _version import __version__
 from getwin import check_pageant_running
 from systemtray import PIVagTray
-from piv_card import PIVCardException, PIVCardTimeoutException
+from piv_card import PIVCardException, PIVCardTimeoutException, ConnectionException
 
 KEY_NAME = "yub384"
 
@@ -145,6 +145,8 @@ class PIVageantwin(mainwin.PIVageant):
                 wx.PostEvent(
                     self, PivKeyEvent(type="Error", data="Unknown error: " + err_msg)
                 )
+        except ConnectionException as exc:
+            wx.PostEvent(self, PivKeyEvent(type="Error", data=str(exc)))
 
 
 def waiting_for_pivkey(curr_frame):

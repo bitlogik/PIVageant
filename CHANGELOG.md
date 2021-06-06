@@ -12,6 +12,7 @@ on 7 June 2021
 * Fix PIV reconnection issue
 * Use task bar tray icon
 * Check if other agent at startup
+* Catch can't start the smartcard manager
 * Project setup and cfg added
 * ChangeLog doc added
 
