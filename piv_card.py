@@ -23,6 +23,7 @@ try:
     from smartcard.CardRequest import CardRequest
     from smartcard.util import toBytes, toHexString
     from smartcard.Exceptions import CardRequestTimeoutException
+    from smartcard.System import readers
 except ModuleNotFoundError as exc:
     raise ModuleNotFoundError("pyscard not installed or was not found") from exc
 
@@ -180,6 +181,7 @@ class PIVcard:
     def __init__(self, connect_timeout, debug=False):
         self.debug = debug
         piv_card_atr = ATRCardType(PIVcard.YUBICO5_ATR_HEX)
+        readers()
         cardrequest = CardRequest(timeout=connect_timeout, cardType=piv_card_atr)
         try:
             self.cardservice = cardrequest.waitforcard()

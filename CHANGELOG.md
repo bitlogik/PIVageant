@@ -9,6 +9,7 @@ on 7 June 2021
 * Improve logo loading method
 * FileInfo and better version management
 * Fix CTRL+C to exit in Gen-keys
+* Fix PIV reconnection issue
 * Use task bar tray icon
 * Check if other agent at startup
 * Project setup and cfg added
