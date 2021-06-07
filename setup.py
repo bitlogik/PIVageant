@@ -4,8 +4,8 @@
 # PIVageant : setup data
 # Copyright (C) 2021  BitLogiK
 
+
 from setuptools import setup, find_packages
-from pip._internal import main as pipmain
 from _version import __version__
 
 

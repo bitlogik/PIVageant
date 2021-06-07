@@ -160,7 +160,7 @@ def decode_do(data, start_index):
         while len_len:
             len_data *= 256
             i += 1
-            len_data += data[i]  # struct.unpack("B"*len_len, data[i+1:i+1+len_len])
+            len_data += data[i]
             len_len -= 1
         i += 1
     else:

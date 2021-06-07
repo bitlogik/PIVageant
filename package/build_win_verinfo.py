@@ -48,6 +48,5 @@ def fill_version_info(file_name, version_str, file_desc, comment):
         now_time_filetime(),
         file_name,
     )
-    print(versioninfo_new)
     with open("package/version_info", "w", encoding="utf-8") as fverinfo:
         fverinfo.write(versioninfo_new)
