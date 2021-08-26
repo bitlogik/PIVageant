@@ -27,8 +27,8 @@ setup(
     python_requires=">=3.6",
     install_requires=[
         "wxPython==4.1.1",
-        "cryptography==3.4.6",
-        "pyscard==2.0.0",
+        "cryptography>=3.4.6",
+        "pyscard==2.0.1",
     ],
     package_data={"res": ["pivageant.ico"]},
     include_package_data=False,
