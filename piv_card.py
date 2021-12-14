@@ -294,7 +294,7 @@ class PIVcard:
         if chall_resp[:4] != [0x7C, 0x0A, 0x81, 8] or len(chall_resp) != 12:
             raise DataException("Bad data received from External Authenticate command")
         challenge = bytes(chall_resp[4:])
-        # Encrypt challenge (with keyalgo 00/00 TDES)
+        # Encrypt challenge (with keyalgo 00/03 TDES)
         enc_algo = algorithms.TripleDES(auth_key)
         mode_algo = modes.ECB()
         cipher = Cipher(enc_algo, mode_algo)
@@ -307,7 +307,7 @@ class PIVcard:
         return auth_resp
 
     def gen_asymmetric(self, keyref, keyalgo):
-        # 0 0x47 0 0x9E L 0xAC 3 0x80 1 ALGO 0xAB 1 2
+        # 0 0x47 0 0x9E L 0xAC 6 0x80 1 ALGO 0xAB 1 2
         # key algo : PIV NIST 800-73-4 Part 1 5.3 Table 5
         apdu_command = [
             0x00,
