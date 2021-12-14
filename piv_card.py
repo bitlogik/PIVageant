@@ -137,7 +137,13 @@ def decode_dol(data, level=0):
             # constructed
             dol_out[f"{tag:02X}"] = decode_dol(data_list, level + 1)
         else:
-            dol_out[f"{tag:02X}"] = bytes(data_list)
+            if dol_out.get(f"{tag:02X}"):
+                if not isinstance(dol_out.get(f"{tag:02X}"), list):
+                    dol_out[f"{tag:02X}"] = [dol_out[f"{tag:02X}"], bytes(data_list)]
+                else:
+                    dol_out[f"{tag:02X}"].append(bytes(data_list))
+            else:
+                dol_out[f"{tag:02X}"] = bytes(data_list)
     return dol_out
 
 
