@@ -384,6 +384,9 @@ class PIVcard:
     def verify_pin(self, pin_bank, pin_string):
         # Verify PIN code : pin_bank
         if pin_string:
-            self.send_command([0, 0x20, 0, pin_bank], pin_string.encode("ascii"))
+            pin_data = pin_string.encode("ascii")
+            while len(pin_data) < 8:
+                pin_data += b"\xFF"
+            self.send_command([0, 0x20, 0, pin_bank], pin_data)
         else:
-            self.send_command([0, 0x20, 0, pin_bank])
+            self.send_command([0, 0x20, 0, pin_bank], b"")
