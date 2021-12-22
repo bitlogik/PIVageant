@@ -176,6 +176,18 @@ def decode_do(data, start_index):
     return tag, i + len_data, data_read
 
 
+def encode_do(do_data):
+    """Add length header to data"""
+    do_len = len(do_data)
+    if do_len < 128:
+        return [do_len, *do_data]
+    elif do_len < 256:
+        return [0x81, do_len, *do_data]
+    elif do_len < 65536:
+        return [0x82, do_len >> 8, do_len % 256, *do_data]
+    raise BadInputException("Data too long.")
+
+
 PIV_AID = "A0 00 00 03 08 00 00 10 00 01 00"
 
 COMPATIBLE_CARDS_HEX = [
@@ -385,7 +397,7 @@ class PIVcard:
             algo,
             keyref,
         ]
-        data = [0x7C, len(data_auth), *data_auth]
+        data = [0x7C, *encode_do(data_auth)]
         return self.send_command(apdu_command, data)
 
     def sign_ec(self, algo, keyref, message):
@@ -405,7 +417,7 @@ class PIVcard:
             else:
                 raise BadInputException("EC sign shall be ECP256 0x11 or ECP384 0x14")
         # Response null, Challenge Hash/Data
-        data = [0x82, 0x00, 0x81, len(hash_data), *hash_data]
+        data = [0x82, 0x00, 0x81, *encode_do(hash_data)]
         return decode_dol(self.general_authenticate(algo, keyref, data))["7C"]["82"]
 
     def external_auth_admin(self, key_ref, keyalgo, auth_key):
@@ -422,7 +434,7 @@ class PIVcard:
         encryptor = cipher.encryptor()
         ct = encryptor.update(challenge)
         # Response 0x82
-        resp_data = [0x82, len(ct)] + to_list(ct)
+        resp_data = [0x82, *encode_do(ct)]
         # 0x6982 status if rejected
         auth_resp = self.general_authenticate(keyalgo, key_ref, resp_data)
         return auth_resp
