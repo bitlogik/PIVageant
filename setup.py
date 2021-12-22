@@ -16,7 +16,7 @@ with open("README.md") as readme_file:
 setup(
     name="PIVageant",
     version=__version__,
-    description="Pageant SSH agent with PIV dongle Yubico 5",
+    description="Pageant SSH agent with PIV dongle",
     long_description=readme + "\n\n",
     long_description_content_type="text/markdown",
     keywords="SSH agent Pageant PIV Windows",

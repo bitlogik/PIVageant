@@ -38,7 +38,7 @@ class PIVageant ( wx.Frame ):
 
         bSizer1.Add( ( 0, 12), 0, 0, 5 )
 
-        self.status_text = wx.StaticText( self.main_panel, wx.ID_ANY, u"Connect a Yubico 5", wx.DefaultPosition, wx.Size( 400,-1 ), wx.ALIGN_CENTER_HORIZONTAL|wx.ST_NO_AUTORESIZE )
+        self.status_text = wx.StaticText( self.main_panel, wx.ID_ANY, u"Connect a PIV device", wx.DefaultPosition, wx.Size( 400,-1 ), wx.ALIGN_CENTER_HORIZONTAL|wx.ST_NO_AUTORESIZE )
         self.status_text.Wrap( -1 )
 
         self.status_text.SetFont( wx.Font( 16, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, False, wx.EmptyString ) )

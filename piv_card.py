@@ -15,11 +15,11 @@
 
 
 import time
-
+from hashlib import sha256, sha384
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 
 try:
-    from smartcard.CardType import ATRCardType
+    from smartcard.CardType import CardType
     from smartcard.CardRequest import CardRequest
     from smartcard.util import toBytes, toHexString
     from smartcard.Exceptions import CardRequestTimeoutException
@@ -176,17 +176,63 @@ def decode_do(data, start_index):
     return tag, i + len_data, data_read
 
 
+PIV_AID = "A0 00 00 03 08 00 00 10 00 01 00"
+
+COMPATIBLE_CARDS_HEX = [
+    # Yubico Yubikey Neo
+    "3B FC 13 00 00 81 31 FE 15 59 75 62 69 6B 65 79 4E 45 4F 72 33 E1",
+    # Yubico Yubikey 4
+    "3B F8 13 00 00 81 31 FE 15 59 75 62 69 6B 65 79 34 D4",
+    # Yubico Yubikey 5
+    "3B FD 13 00 00 81 31 FE 15 80 73 C0 21 C0 57 59 75 62 69 4B 65 79 40",
+    # Yubico Yubikey 5 VCI
+    "12 78 B3 84 00 80 73 C0 21 C0 57 59 75 62 69 4B 65 79",
+    # Feitian ePass
+    "3B DD 18 00 81 91 FE 1F C3 00 66 46 53 08 03 00 36 71 DF 00 00 80 97",
+]
+
+
+class CardsATRList(CardType):
+    """Derive CardType class to use a list of different possibles ATRs"""
+
+    def __init__(self, atr_list):
+        """Initialize the card type with a list of ATR"""
+        self.atrs_list = atr_list
+
+    def matches(self, atr, reader=None):
+        return atr in self.atrs_list
+
+
+# Algorithms constants
+ALG_3DES = 0x03
+ALG_RSA1024 = 0x06
+ALG_RSA2048 = 0x07
+ALG_AES128 = 0x08
+ALG_AES192 = 0x0A
+ALG_AES256 = 0x0C
+ALG_ECP256 = 0x11
+ALG_ECP384 = 0x14
+ALG_CS2 = 0x27
+ALG_CS7 = 0x27
+# unofficials
+ALG_ECP256_SHA1 = 0xF0
+ALG_ECP256_SHA256 = 0xF1
+ALG_ECP384_SHA1 = 0xF2
+ALG_ECP384_SHA256 = 0xF3
+ALG_ECP384_SHA384 = 0xF4
+
+
 # Core class PIVcard
 
 
 class PIVcard:
 
-    AppID = toBytes("A000000308000010000100")
-    YUBICO5_ATR_HEX = toBytes("3BFD1300008131FE158073C021C057597562694B657940")
+    AppID = toBytes(PIV_AID)
+    compat_cards = [toBytes(atr) for atr in COMPATIBLE_CARDS_HEX]
 
     def __init__(self, connect_timeout, debug=False):
         self.debug = debug
-        piv_card_atr = ATRCardType(PIVcard.YUBICO5_ATR_HEX)
+        piv_card_atr = CardsATRList(PIVcard.compat_cards)
         try:
             cardrequest = CardRequest(timeout=connect_timeout, cardType=piv_card_atr)
             self.cardservice = cardrequest.waitforcard()
@@ -207,7 +253,41 @@ class PIVcard:
             0x00,
             len(PIVcard.AppID),
         ] + PIVcard.AppID
-        self.send_apdu(apdu_select)
+        select_resp, sw_byte1, sw_byte2 = self.send_apdu(apdu_select)
+        if sw_byte1 != 0x90 or sw_byte2 != 0x00:
+            raise PIVCardException(sw_byte1, sw_byte2)
+        card_info = decode_dol(select_resp)["61"]
+        self.label = ""
+        self.url_spec = ""
+        self.algos = []
+        self.hash_on_card = False
+        self.SM_capable = False
+        self.yubi_version = ""
+        self.yubi_serial = 0
+        self.is_yubico = False
+        if card_info.get("50"):
+            self.label = card_info["50"].decode("utf8")
+        if card_info.get("AC"):
+            self.algos = [ord(v) for v in card_info["AC"]["80"]]
+        if self.algos and ((ALG_CS2 in self.algos) or (ALG_CS7 in self.algos)):
+            self.SM_capable = True
+        if ALG_ECP256_SHA256 in self.algos:
+            self.hash_on_card = True
+        self.yubi_version = self.yubi_get_version()
+        self.is_yubico = bool(self.yubi_version)
+        if self.is_yubico:
+            self.yubi_serial = self.get_serial()
+        if self.debug:
+            print("PIV key connected :", self.label)
+            if self.is_yubico:
+                print(
+                    " Yubico device version",
+                    self.yubi_version,
+                    "with serial =",
+                    self.yubi_serial,
+                )
+            print(" Algorithms supported :", [f"0x{alg:02X}" for alg in self.algos])
+            print(" Secure Messaging capable ?", "yes" if self.SM_capable else "no")
         time.sleep(0.25)
 
     def __del__(self):
@@ -273,6 +353,31 @@ class PIVcard:
             raise PIVCardException(sw_byte1, sw_byte2)
         return datar
 
+    def yubi_get_version(self):
+        # Yubico extension
+        version_command = [0x00, 0xFD, 0x00, 0x00]
+        try:
+            version_bin = self.send_command(version_command, b"")
+            if len(version_bin) < 3:
+                return ""
+            return ".".join([str(c) for c in version_bin])
+        except PIVCardException:
+            return ""
+
+    def get_serial(self):
+        # Yubico extension, only available on Yubikey 5
+        serial_command = [0x00, 0xF8, 0x00, 0x00]
+        serial_bin = self.send_command(serial_command, b"")
+        try:
+            return int.from_bytes(serial_bin, "big")
+        except PIVCardException:
+            return 0
+
+    def reset(self):
+        # PIV extension, only available when both PIN and PUK are blocked.
+        reset_command = [0x00, 0xFB, 0x00, 0x00]
+        return self.send_command(reset_command, b"")
+
     def general_authenticate(self, algo, keyref, data_auth):
         apdu_command = [
             0x00,
@@ -283,7 +388,23 @@ class PIVcard:
         data = [0x7C, len(data_auth), *data_auth]
         return self.send_command(apdu_command, data)
 
-    def sign_ec(self, algo, keyref, hash_data):
+    def sign_ec(self, algo, keyref, message):
+        # EC Sign a message
+        if self.algos and algo not in self.algos:
+            raise BadInputException("This PIV device doesn't support this algorithm")
+        if self.hash_on_card:
+            # PIV proprietary variant with hash on card
+            hash_data = message
+            algo = 0xF0 + (algo & 0x0F)
+        else:
+            # Fully compliant PIV device, device signs pre-hashed
+            if algo == ALG_ECP256:
+                hash_data = sha256(message).digest()
+            elif algo == ALG_ECP384:
+                hash_data = sha384(message).digest()
+            else:
+                raise BadInputException("EC sign shall be ECP256 0x11 or ECP384 0x14")
+        # Response null, Challenge Hash/Data
         data = [0x82, 0x00, 0x81, len(hash_data), *hash_data]
         return decode_dol(self.general_authenticate(algo, keyref, data))["7C"]["82"]
 
@@ -317,13 +438,13 @@ class PIVcard:
         ]
         data = [
             0xAC,
-            6,
+            3,
             0x80,
             1,
             keyalgo,
-            0xAB,
-            1,
-            0x02,
+            # 0xAB,
+            # 1,
+            # 0x02,
         ]
         gen_resp = self.send_command(apdu_command, data)
         if gen_resp[:2] != [0x7F, 0x49] or len(gen_resp) != gen_resp[2] + 3:

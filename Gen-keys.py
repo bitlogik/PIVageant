@@ -21,8 +21,11 @@ import subprocess
 from _version import __version__
 import piv_card
 
-ADMIN_KEY = "010203040506070801020304050607080102030405060708"
-KEY_NAME = "yub384"
+ADMIN_KEYS = [
+    "010203040506070801020304050607080102030405060708",
+    "313233343536373831323334353637383132333435363738",
+]
+KEY_NAME = "ECPSSHKey"
 
 
 def build_certificate(datakey):
@@ -65,7 +68,7 @@ fake_or_PKI = "fake"
 
 def main():
     print("\n PIVageant Gen-keys version ", __version__)
-    print("Waiting for a Yubico 5 ...")
+    print("Waiting for a PIV device ...")
     print(" press CTRL+C to cancel")
     current_card = None
     while not current_card:
@@ -75,21 +78,29 @@ def main():
             return
         except piv_card.PIVCardTimeoutException:
             continue
-    print("OK, Yubico 5 with PIV detected")
+    print("OK, PIV device detected")
     admin_keyref = 0x9B
     algo_used = 0x03
-    # get pass
-    admin_key = bytes.fromhex(ADMIN_KEY)
-    current_card.external_auth_admin(admin_keyref, algo_used, admin_key)
+    # Auth admin
+    for admin_key in ADMIN_KEYS:
+        admin_key = bytes.fromhex(admin_key)
+        try:
+            current_card.external_auth_admin(admin_keyref, algo_used, admin_key)
+        except piv_card.PIVCardException:
+            continue
+        break
     key_slot_gen = 0x9E  # Card auth key
-    keyalgo = 0x14  # ECC 384
     Data_slot_ID = "5FC101"
     # key_slot_gen = 0x9C # Digital Signature Key
-    # keyalgo = 0x14 # ECC 384
     # Data_slot_ID = "5FC10A"
-    pubkey_resp = current_card.gen_asymmetric(key_slot_gen, keyalgo)
+    keyalgo = 0x14  # EC 384
+    try:
+        pubkey_resp = current_card.gen_asymmetric(key_slot_gen, keyalgo)
+    except piv_card.PIVCardException:
+        keyalgo = 0x11  # EC 256
+        pubkey_resp = current_card.gen_asymmetric(key_slot_gen, keyalgo)
     openssh_pukey = encode_openssh(pubkey_resp["86"], KEY_NAME)
-    print("\nCard authentication key generated with ECP384 :\n")
+    print("\nCard authentication key generated with EC :\n")
     print(openssh_pukey)
     print("")
     key_parts = openssh_pukey.split(" ")

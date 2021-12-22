@@ -15,7 +15,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 
 import base64
-import hashlib
 
 from cryptography import x509
 from cryptography.hazmat.primitives.serialization import PublicFormat, Encoding
@@ -37,10 +36,6 @@ def pack_reply(reply_msg):
 def read_len(buffer):
     # Return the message length header as integer
     return int.from_bytes(buffer[:4], "big")
-
-
-def sha384(data):
-    return hashlib.sha384(data).digest()
 
 
 def encode_pubkey(pubkey, identifier, key_blob_id):
@@ -178,7 +173,7 @@ def sign_request(sign_req, local_ssh_key, open_user_modal, debug_piv=False):
     signature_data = parse_sign_command(sign_req, debug_piv)
     current_card = piv_card.PIVcard(15, debug_piv)
     if debug_piv:
-        print("Yubico 5 with PIV detected")
+        print("PIV device detected")
     # Check data to be signed
     sig_data = parse_datasig(signature_data)
     local_pubkey = pack_reply(local_ssh_key[4 : 4 + read_len(local_ssh_key)])
@@ -186,10 +181,9 @@ def sign_request(sign_req, local_ssh_key, open_user_modal, debug_piv=False):
     assert sig_data["publickey"] == pack_reply(SIG_HEADER_STRING) + local_pubkey
     # All checks OK, proceed to sign
     open_user_modal(sig_data["username"])
-    hash = sha384(signature_data)
     key_slot_gen = 0x9E
     keyalgo = 0x14  # ECC 384
-    der_signature = current_card.sign_ec(keyalgo, key_slot_gen, hash)
+    der_signature = current_card.sign_ec(keyalgo, key_slot_gen, signature_data)
     del current_card
     sig_type = SIGN_RESPONSE.to_bytes(1, byteorder="big")
     sig_header = pack_reply(SIG_HEADER_STRING)
