@@ -86,7 +86,9 @@ def read_pubkey(keyname, timeout):
         Encoding.X962, PublicFormat.UncompressedPoint
     )
     # For EC key
-    curve_id = "nistp384"
+    curve_id = "nistp256"
+    if len(pubkey) == 97:
+        curve_id = "nistp384"
     key_id = f"ecdsa-sha2-{curve_id}"
     pubkey_encoded = encode_pubkey(pubkey, key_id, curve_id)
     return f"{key_id} {base64.b64encode(pubkey_encoded).decode('ascii')} {keyname}"
@@ -169,8 +171,9 @@ def parse_sign_command(sign_cmd, debug):
 
 def sign_request(sign_req, local_ssh_key, open_user_modal, debug_piv=False):
     # Parse, check and sign the signature query
-    SIG_HEADER_STRING = b"ecdsa-sha2-nistp384"
+    SIG_HEADER_STRING = b"ecdsa-sha2-nistp256"
     signature_data = parse_sign_command(sign_req, debug_piv)
+    print("Data to sign request :", signature_data)
     current_card = piv_card.PIVcard(15, debug_piv)
     if debug_piv:
         print("PIV device detected")
@@ -182,7 +185,7 @@ def sign_request(sign_req, local_ssh_key, open_user_modal, debug_piv=False):
     # All checks OK, proceed to sign
     open_user_modal(sig_data["username"])
     key_slot_gen = 0x9E
-    keyalgo = 0x14  # ECC 384
+    keyalgo = 0x11  # ECC 384
     der_signature = current_card.sign_ec(keyalgo, key_slot_gen, signature_data)
     del current_card
     sig_type = SIGN_RESPONSE.to_bytes(1, byteorder="big")

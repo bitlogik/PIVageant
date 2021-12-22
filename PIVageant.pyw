@@ -30,7 +30,7 @@ from getwin import check_pageant_running
 from systemtray import PIVagTray
 from piv_card import PIVCardException, PIVCardTimeoutException, ConnectionException
 
-KEY_NAME = "yub384"
+KEY_NAME = "ECPSSHKey"
 
 
 def is_tty():

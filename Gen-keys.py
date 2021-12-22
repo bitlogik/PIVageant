@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-# Generate 9E key EC384 with touch
+# Generate 9E key ECDSA (with touch ?)
 # To use Yubico 5 with PIVageant
 # Copyright (C) 2021  BitLogiK
 #
@@ -28,14 +28,36 @@ ADMIN_KEYS = [
 KEY_NAME = "ECPSSHKey"
 
 
-def build_certificate(datakey):
+def ascii2hex(ascii_str):
+    return "".join("{:02x}".format(c) for c in ascii_str.encode("ascii"))
+
+
+def build_certificate(datakey, key_algo):
     # fake signature
+    if key_algo == 0x11 and len(datakey) != 65:
+        raise Exception("invalid public key length")
+    if key_algo == 0x14 and len(datakey) != 97:
+        raise Exception("invalid public key length")
     return (
-        "7082015b308201573081dfa003020102021465fb4509c1e90575ef9eccc57f5f"
+        "7082"
+        "013e"  # "015b"
+        "3082"
+        "013a"  # "0157"
+        "3081"
+        "c2"  # "df"
+        "a003020102021465fb4509c1e90575ef9eccc57f5f"
         "96ffc56b22b7300a06082a8648ce3d040302300e310c300a06035504030c0353"
         "5348301e170d3231303232373133333532395a170d3332303232353030303030"
-        "305a300e310c300a06035504030c035353483076301006072a8648ce3d020106"
-        "052b81040022036200"
+        "305a300e310c300a06035504030c03535348"
+        "30"
+        "59"  # "76"
+        "30"
+        "13"  # "10"
+        "06072a8648ce3d0201"
+        # P384 OID=1.3.132.0.34
+        # "06052b81040022036200"
+        # P256 OID=1.2.840.10045.3.1.7
+        "06082a8648ce3d030107034200"
         + datakey.hex()
         + "300a06082a8648ce3d040302036700306402300331a54b279f7f91e41f81b814"
         "dfec2190e24155824f402ca333f1a9bbc8b985f91bb12a7b7432faae142943db"
@@ -44,18 +66,27 @@ def build_certificate(datakey):
     )
 
 
-def encode_openssh(pubkey_bytes, comment_text):  # for ECP384
-    if len(pubkey_bytes) != 97:
+def encode_openssh(pubkey_bytes, comment_text, key_algo):
+    pubkey_len_bits = 384
+    if key_algo == 0x11:
+        pubkey_len_bits = 256
+    pubkey_len = pubkey_len_bits // 4 + 1  # 2 len + 1 bytes
+    if len(pubkey_bytes) != pubkey_len:
         raise Exception("invalid public key length")
-    # "ecdsa-sha2-nistp384", "nistp384", header len pubkey
+    keylen_ascii = ascii2hex(str(pubkey_len_bits))
+    # "ecdsa-sha2-nistpXXX", "nistpXXX", header len pubkey
     header_hex = (
-        "0000001365636473612D736861322D6E69737470333834000000086E69737470"
-        "33383400000061"
+        "0000001365636473612D736861322D6E69737470"
+        + keylen_ascii
+        + "000000086E69737470"
+        + keylen_ascii
+        + "000000"
+        + hex(pubkey_len)[2:].upper()
     )
     pubkey_b64 = base64.b64encode(bytes.fromhex(header_hex) + pubkey_bytes).decode(
         "ascii"
     )
-    return f"ecdsa-sha2-nistp384 {pubkey_b64} {comment_text}"
+    return f"ecdsa-sha2-nistp{pubkey_len_bits} {pubkey_b64} {comment_text}"
 
 
 def decode_ssh(data):
@@ -95,11 +126,13 @@ def main():
     # Data_slot_ID = "5FC10A"
     keyalgo = 0x14  # EC 384
     try:
+        # try with EC 384 bits
+        raise piv_card.PIVCardException(0, 0)
         pubkey_resp = current_card.gen_asymmetric(key_slot_gen, keyalgo)
     except piv_card.PIVCardException:
-        keyalgo = 0x11  # EC 256
+        keyalgo = 0x11  # Fallback to EC 256
         pubkey_resp = current_card.gen_asymmetric(key_slot_gen, keyalgo)
-    openssh_pukey = encode_openssh(pubkey_resp["86"], KEY_NAME)
+    openssh_pukey = encode_openssh(pubkey_resp["86"], KEY_NAME, keyalgo)
     print("\nCard authentication key generated with EC :\n")
     print(openssh_pukey)
     print("")
@@ -112,7 +145,7 @@ def main():
     pubkey_bin = pubkey_resp["86"]
     # Generate certificate for this key
     if fake_or_PKI == "fake":
-        cert_data_hex = build_certificate(pubkey_bin)
+        cert_data_hex = build_certificate(pubkey_bin, keyalgo)
     else:
         f = open("pivkey.pub", "w")
         f.write(openssh_pukey)
