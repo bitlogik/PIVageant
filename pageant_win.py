@@ -16,8 +16,25 @@
 
 import mmap
 import platform
-from ctypes import *
-from ctypes import wintypes
+from ctypes import (
+    WinDLL,
+    windll,
+    wintypes,
+    WinError,
+    get_last_error,
+    c_void_p,
+    c_byte,
+    c_uint32,
+    c_uint64,
+    c_int,
+    c_int64,
+    Structure,
+    WINFUNCTYPE,
+    POINTER,
+    byref,
+    memmove,
+    cast,
+)
 
 
 def errcheck(result, func, args):
@@ -34,8 +51,8 @@ WNDPROC = WINFUNCTYPE(
 ULONG_PTR = c_uint64 if platform.architecture()[0] == "64bit" else c_uint32
 
 
-def MAKEINTRESOURCEW(x):
-    return wintypes.LPCWSTR(x)
+def MAKEINTRESOURCEW(xi32):
+    return wintypes.LPCWSTR(xi32)
 
 
 class COPYDATASTRUCT(Structure):
@@ -187,7 +204,7 @@ def MainWin(win_proc_cb):
     user32.RegisterClassW(byref(wndclass))
 
     # Create Window
-    main_window = user32.CreateWindowExW(
+    user32.CreateWindowExW(
         0,
         wndclass.lpszClassName,
         "Pageant",

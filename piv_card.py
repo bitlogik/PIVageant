@@ -252,8 +252,8 @@ class PIVcard:
             raise PIVCardTimeoutException
         except EstablishContextException as exc:
             if (
-                str(exc)
-                == "'Failure to establish context: The Smart Card Resource Manager is not running. '"
+                str(exc) == "'Failure to establish context:"
+                "The Smart Card Resource Manager is not running. '"
             ):
                 raise ConnectionException("Can't start Scard service")
             raise
