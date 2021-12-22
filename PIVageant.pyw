@@ -54,8 +54,10 @@ class ModalWait(mainwin.ModalDialog):
 class PIVageantwin(mainwin.PIVageant):
     def copy_content(self, event):
         if wx.TheClipboard.Open():
-            pubkey_str = wx.TextDataObject(self.pubkey_text.GetValue())
-            wx.TheClipboard.SetData(pubkey_str.replace("\n", ""))
+            pubkey_str = wx.TextDataObject(
+                self.pubkey_text.GetValue().replace("\n", "")
+            )
+            wx.TheClipboard.SetData(pubkey_str)
             wx.TheClipboard.Close()
             wx.TheClipboard.Flush()
 
