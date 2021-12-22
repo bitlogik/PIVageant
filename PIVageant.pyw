@@ -29,6 +29,7 @@ from _version import __version__
 from getwin import check_pageant_running
 from systemtray import PIVagTray
 from piv_card import PIVCardException, PIVCardTimeoutException, ConnectionException
+from ssh_encodings import openssh_to_wire
 
 KEY_NAME = "ECPSSHKey"
 
@@ -66,7 +67,7 @@ class PIVageantwin(mainwin.PIVageant):
         process_cb = partial(
             pageantclient.process_command,
             DEBUG_OUTPUT,
-            pageantclient.openssh_to_wire(ssh_pubkey),
+            openssh_to_wire(ssh_pubkey),
             self.sign_status,
             self.end_status,
         )

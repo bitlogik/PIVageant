@@ -16,20 +16,17 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 
 
-import base64
 import subprocess
 from _version import __version__
 import piv_card
+from ssh_encodings import decode_ssh, encode_openssh
+
 
 ADMIN_KEYS = [
     "010203040506070801020304050607080102030405060708",
     "313233343536373831323334353637383132333435363738",
 ]
 KEY_NAME = "ECPSSHKey"
-
-
-def ascii2hex(ascii_str):
-    return "".join("{:02x}".format(c) for c in ascii_str.encode("ascii"))
 
 
 def build_certificate(datakey, key_algo):
@@ -64,34 +61,6 @@ def build_certificate(datakey, key_algo):
         "2a4fcb0230704fd3f7a8f6101c5e2dcee92b2eeca398550a482618f6024a8a71"
         "079fa0ddae4e53aee330b62201a651e04b1d73d418710100fe00"
     )
-
-
-def encode_openssh(pubkey_bytes, comment_text, key_algo):
-    pubkey_len_bits = 384
-    if key_algo == 0x11:
-        pubkey_len_bits = 256
-    pubkey_len = pubkey_len_bits // 4 + 1  # 2 len + 1 bytes
-    if len(pubkey_bytes) != pubkey_len:
-        raise Exception("invalid public key length")
-    keylen_ascii = ascii2hex(str(pubkey_len_bits))
-    # "ecdsa-sha2-nistpXXX", "nistpXXX", header len pubkey
-    header_hex = (
-        "0000001365636473612D736861322D6E69737470"
-        + keylen_ascii
-        + "000000086E69737470"
-        + keylen_ascii
-        + "000000"
-        + hex(pubkey_len)[2:].upper()
-    )
-    pubkey_b64 = base64.b64encode(bytes.fromhex(header_hex) + pubkey_bytes).decode(
-        "ascii"
-    )
-    return f"ecdsa-sha2-nistp{pubkey_len_bits} {pubkey_b64} {comment_text}"
-
-
-def decode_ssh(data):
-    ssh_data = data.split(" ")[1]
-    return base64.b64decode(ssh_data)
 
 
 fake_or_PKI = "fake"
@@ -132,7 +101,7 @@ def main():
     except piv_card.PIVCardException:
         keyalgo = 0x11  # Fallback to EC 256
         pubkey_resp = current_card.gen_asymmetric(key_slot_gen, keyalgo)
-    openssh_pukey = encode_openssh(pubkey_resp["86"], KEY_NAME, keyalgo)
+    openssh_pukey = encode_openssh(pubkey_resp["86"], KEY_NAME)
     print("\nCard authentication key generated with EC :\n")
     print(openssh_pukey)
     print("")
