@@ -192,16 +192,36 @@ CLOSE_MAGIC = randbits(32)
 class_id = 0
 
 
-def MainWin(win_proc_cb):
+def MainWin(callback):
+
+    class_name = "Pageant"
+
+    def CustomWndProc(hwnd, message, wParam, lParam):
+        global class_id
+        if message == WM_COPYDATA:
+            handle_wmcopy(lParam, hwnd, callback)
+            return 0
+        elif message == WM_DESTROY:
+            if wParam == CLOSE_MAGIC:
+                ret = user32.DestroyWindow(hwnd)
+                if ret == 0:
+                    raise WinError(get_last_error())
+                ret = user32.UnregisterClassW(class_name, class_id)
+                if ret == 0:
+                    raise WinError(get_last_error())
+                user32.PostQuitMessage(0)
+                return wParam
+        return user32.DefWindowProcW(hwnd, message, wParam, lParam)
+    
     wndclass = WNDCLASSW()
     wndclass.style = CS_HREDRAW | CS_VREDRAW
-    wndclass.lpfnWndProc = WNDPROC(win_proc_cb)
+    wndclass.lpfnWndProc = WNDPROC(CustomWndProc)
     wndclass.cbClsExtra = wndclass.cbWndExtra = 0
     wndclass.hInstance = kernel32.GetModuleHandleW(None)
     wndclass.hIcon = user32.LoadIconW(None, IDI_APPLICATION)
     wndclass.hCursor = user32.LoadCursorW(None, IDC_ARROW)
     wndclass.lpszMenuName = None
-    wndclass.lpszClassName = "Pageant"
+    wndclass.lpszClassName = class_name
 
     # Register Window Class
     class_id = user32.RegisterClassW(byref(wndclass))
@@ -257,26 +277,6 @@ def handle_wmcopy(wmcp_adr, hwmn, handle_command):
         conn_mmap.seek(0)
         conn_mmap.write(resp)
         user32.ReplyMessage(len(resp))
-
-
-def gen_cb(cb):
-    def WndProc(hwnd, message, wParam, lParam):
-        if message == WM_COPYDATA:
-            handle_wmcopy(lParam, hwnd, cb)
-            return 0
-        elif message == WM_DESTROY:
-            if wParam == CLOSE_MAGIC:
-                ret = user32.DestroyWindow(hwnd)
-                if ret == 0:
-                    raise WinError(get_last_error())
-                ret = user32.UnregisterClassW("Pageant", class_id)
-                if ret == 0:
-                    raise WinError(get_last_error())
-                user32.PostQuitMessage(0)
-                return wParam
-        return user32.DefWindowProcW(hwnd, message, wParam, lParam)
-
-    return WndProc
 
 
 def get_window_id():
