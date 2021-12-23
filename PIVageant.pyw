@@ -60,12 +60,14 @@ class ModalWait(lib.gui.mainwin.ModalDialog):
 class PIVageantwin(lib.gui.mainwin.PIVageant):
     def copy_content(self, evt):
         if wx.TheClipboard.Open():
-            pubkey_str = wx.TextDataObject(
-                self.pubkey_text.GetValue().replace("\n", "")
-            )
-            wx.TheClipboard.SetData(pubkey_str)
-            wx.TheClipboard.Close()
-            wx.TheClipboard.Flush()
+            pubkey_txt = self.pubkey_text.GetValue().replace("\n", "")
+            if pubkey_txt.startswith("ecdsa-"):
+                pubkey_str = wx.TextDataObject(pubkey_txt)
+                wx.TheClipboard.SetData(pubkey_str)
+                wx.TheClipboard.Close()
+                wx.TheClipboard.Flush()
+                self.change_status("Public key in clipboard")
+                wx.CallLater(800, self.change_status, "Ready")
 
     def gen_key(self, evt):
         evt.Skip()
