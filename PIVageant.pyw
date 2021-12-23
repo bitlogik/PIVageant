@@ -155,7 +155,7 @@ class PIVageantwin(lib.gui.mainwin.PIVageant):
         self.trayicon.Destroy()
 
     def waiting_for_pivkey(self):
-        wx.CallLater(250, self.get_pubkey)
+        wx.CallLater(500, self.get_pubkey)
 
     def get_pubkey(self):
         try:
