@@ -34,10 +34,10 @@ SIGN_RESPONSE = 14
 ERROR_CODE = b"\x05"
 
 
-def read_pubkey(keyname, timeout):
+def read_pubkey(keyname, timeout, debug):
     """Read the PIV key certificate"""
     # X509 decoding, then encoded to OpenSSH format
-    my_piv_card = PIVcard(timeout, True)
+    my_piv_card = PIVcard(timeout, debug)
     cert_raw = my_piv_card.get_data("5FC101")
     cert = x509.load_der_x509_certificate(cert_raw[4:-5])
     pubkey = cert.public_key().public_bytes(
@@ -92,8 +92,7 @@ def sign_request(sign_req, local_ssh_key, open_user_modal, debug_piv=False):
         raise Exception("Incompatible key type")
     SIG_HEADER_STRING = b"ecdsa-sha2-nistp" + key_type
     signature_data = parse_sign_command(sign_req, debug_piv)
-    print("Data to sign request :", signature_data)
-    current_card = PIVcard(15, debug_piv)
+    current_card = PIVcard(5, debug_piv)
     if debug_piv:
         print("PIV device detected")
     # Check data to be signed

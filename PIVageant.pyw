@@ -26,7 +26,12 @@ import lib.gui.mainwin
 import lib.gui.pageant_win
 from lib.gui.getwin import check_pageant_running
 from lib.gui.systemtray import PIVagTray
-from lib.piv.piv_card import PIVCardException, PIVCardTimeoutException, ConnectionException
+from lib.piv.piv_card import (
+    PIVCardException,
+    PIVCardTimeoutException,
+    ConnectionException,
+)
+from lib.piv.genkeys import generate_key
 from lib.ssh.ssh_encodings import openssh_to_wire
 from lib.pageantclient import process_command, read_pubkey
 from _version import __version__
@@ -53,7 +58,7 @@ class ModalWait(lib.gui.mainwin.ModalDialog):
 
 
 class PIVageantwin(lib.gui.mainwin.PIVageant):
-    def copy_content(self, event):
+    def copy_content(self, evt):
         if wx.TheClipboard.Open():
             pubkey_str = wx.TextDataObject(
                 self.pubkey_text.GetValue().replace("\n", "")

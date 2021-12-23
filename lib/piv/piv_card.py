@@ -255,7 +255,7 @@ class PIVcard:
                 "The Smart Card Resource Manager is not running. '"
             ):
                 raise ConnectionException("Can't start Scard service")
-            raise
+            raise exc
         self.cardservice.connection.connect()
         apdu_select = [
             0x00,

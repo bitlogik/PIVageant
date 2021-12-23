@@ -31,7 +31,9 @@ def parse_datasig(data):
     i += 4
     session_id = data[i : i + len_part]
     i += len_part
-    assert data[i] == 50  # SSH_MSG_USERAUTH_REQUEST
+    if data[i] != 50:
+        # SSH_MSG_USERAUTH_REQUEST
+        raise Exception("Bad request for user auth")
     i += 1
     len_part = read_len(data[i:])
     i += 4
@@ -40,14 +42,18 @@ def parse_datasig(data):
     len_part = read_len(data[i:])
     i += 4
     # Service name
-    assert data[i : i + len_part] == b"ssh-connection"
+    if data[i : i + len_part] != b"ssh-connection":
+        raise Exception("Bad data in ssh message")
     i += len_part
     len_part = read_len(data[i:])
     i += 4
     # Authentication Method Name
-    assert data[i : i + len_part] == b"publickey"
+    if data[i : i + len_part] != b"publickey":
+        raise Exception("Bad pubkey in ssh message")
     i += len_part
-    assert data[i] == 1  # True
+    if data[i] != 1:
+        # check True
+        raise Exception("Bad info in ssh message")
     i += 1
     publickey = data[i:]
     return {"session_id": session_id, "username": username, "publickey": publickey}
