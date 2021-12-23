@@ -47,7 +47,7 @@ def is_tty():
     return sys.stdin.isatty()
 
 
-DEBUG_OUTPUT = is_tty()
+DEBUG_OUTPUT = False
 
 
 class ModalWait(lib.gui.mainwin.ModalDialog):
@@ -231,4 +231,6 @@ def mainapp():
 
 
 if __name__ == "__main__":
+    if "-v" in sys.argv[1:]:
+        DEBUG_OUTPUT = is_tty()
     mainapp()
