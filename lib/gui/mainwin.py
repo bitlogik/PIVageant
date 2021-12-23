@@ -17,7 +17,7 @@ import wx.xrc
 class PIVageant ( wx.Frame ):
 
     def __init__( self, parent ):
-        wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = wx.EmptyString, pos = wx.DefaultPosition, size = wx.Size( 581,318 ), style = wx.CAPTION|wx.CLOSE_BOX|wx.MINIMIZE_BOX|wx.SYSTEM_MENU|wx.TAB_TRAVERSAL )
+        wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = wx.EmptyString, pos = wx.DefaultPosition, size = wx.Size( 620,360 ), style = wx.CAPTION|wx.CLOSE_BOX|wx.MINIMIZE_BOX|wx.SYSTEM_MENU|wx.TAB_TRAVERSAL )
 
         self.SetSizeHints( wx.DefaultSize, wx.DefaultSize )
 
@@ -27,13 +27,29 @@ class PIVageant ( wx.Frame ):
         bSizer1 = wx.BoxSizer( wx.VERTICAL )
 
         self.pubkey_text = wx.TextCtrl( self.main_panel, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, wx.TE_CHARWRAP|wx.TE_MULTILINE|wx.TE_NO_VSCROLL|wx.TE_READONLY )
+        self.pubkey_text.SetFont( wx.Font( 11, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, False, wx.EmptyString ) )
+
         bSizer1.Add( self.pubkey_text, 1, wx.ALL|wx.EXPAND, 20 )
+
+        bSizer4 = wx.BoxSizer( wx.HORIZONTAL )
 
         self.cpy_btn = wx.Button( self.main_panel, wx.ID_ANY, u"copy", wx.DefaultPosition, wx.Size( -1,45 ), 0 )
         self.cpy_btn.SetFont( wx.Font( 14, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, False, wx.EmptyString ) )
         self.cpy_btn.Enable( False )
 
-        bSizer1.Add( self.cpy_btn, 0, wx.ALIGN_CENTER_HORIZONTAL|wx.ALL, 3 )
+        bSizer4.Add( self.cpy_btn, 0, wx.ALIGN_CENTER_HORIZONTAL|wx.ALL|wx.ALIGN_CENTER_VERTICAL, 3 )
+
+
+        bSizer4.Add( ( 80, 0), 0, 0, 5 )
+
+        self.gen_btn = wx.Button( self.main_panel, wx.ID_ANY, u"+ new key", wx.DefaultPosition, wx.Size( -1,45 ), 0 )
+        self.gen_btn.SetFont( wx.Font( 14, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, False, wx.EmptyString ) )
+        self.gen_btn.Enable( False )
+
+        bSizer4.Add( self.gen_btn, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
+
+
+        bSizer1.Add( bSizer4, 0, wx.ALIGN_CENTER_HORIZONTAL, 5 )
 
 
         bSizer1.Add( ( 0, 12), 0, 0, 5 )
@@ -43,7 +59,7 @@ class PIVageant ( wx.Frame ):
 
         self.status_text.SetFont( wx.Font( 16, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, False, wx.EmptyString ) )
 
-        bSizer1.Add( self.status_text, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
+        bSizer1.Add( self.status_text, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 10 )
 
 
         bSizer1.Add( ( 0, 12), 0, 0, 5 )
@@ -62,6 +78,7 @@ class PIVageant ( wx.Frame ):
 
         # Connect Events
         self.cpy_btn.Bind( wx.EVT_BUTTON, self.copy_content )
+        self.gen_btn.Bind( wx.EVT_BUTTON, self.gen_key )
 
     def __del__( self ):
         pass
@@ -69,6 +86,9 @@ class PIVageant ( wx.Frame ):
 
     # Virtual event handlers, overide them in your derived class
     def copy_content( self, event ):
+        event.Skip()
+
+    def gen_key( self, event ):
         event.Skip()
 
 

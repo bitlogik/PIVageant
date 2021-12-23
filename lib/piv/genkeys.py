@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-# Generate 9E key ECDSA (with touch ?)
-# To use Yubico 5 with PIVageant
+# Generate 9E key ECDSA with touch when possible
+# To use a PIV dongle with PIVageant
 # Copyright (C) 2021  BitLogiK
 #
 # This program is free software: you can redistribute it and/or modify
@@ -17,7 +17,6 @@
 
 
 import subprocess
-from _version import __version__
 from lib.piv.piv_card import (
     PIVcard,
     PIVCardException,
@@ -84,19 +83,8 @@ def build_certificate(datakey, key_algo):
 fake_or_PKI = "fake"
 
 
-def main():
-    print("\n PIVageant Gen-keys version ", __version__)
-    print("Waiting for a PIV device ...")
-    print(" press CTRL+C to cancel")
-    current_card = None
-    while not current_card:
-        try:
-            current_card = PIVcard(1)
-        except KeyboardInterrupt:
-            return
-        except PIVCardTimeoutException:
-            continue
-    print("OK, PIV device detected")
+def generate_key(debug=False):
+    current_card = PIVcard(0.2)
     admin_keyref = 0x9B
     algo_used = 0x03
     # Auth admin
@@ -119,15 +107,15 @@ def main():
         keyalgo = 0x11  # Fallback to EC 256
         pubkey_resp = current_card.gen_asymmetric(key_slot_gen, keyalgo)
     openssh_pukey = encode_openssh(pubkey_resp["86"], KEY_NAME)
-    print("\nCard authentication key generated with EC :\n")
-    print(openssh_pukey)
-    print("")
-    key_parts = openssh_pukey.split(" ")
-    print("---- BEGIN SSH2 PUBLIC KEY ----")
-    print(f'Comment: "{key_parts[2]}"')
-    print(key_parts[1])
-    print("---- END SSH2 PUBLIC KEY ----")
-    print("")
+    if debug:
+        print("\nCard authentication key generated with EC :\n")
+        print(openssh_pukey)
+        key_parts = openssh_pukey.split(" ")
+        print("---- BEGIN SSH2 PUBLIC KEY ----")
+        print(f'Comment: "{key_parts[2]}"')
+        print(key_parts[1])
+        print("---- END SSH2 PUBLIC KEY ----")
+        print("")
     pubkey_bin = pubkey_resp["86"]
     # Generate certificate for this key
     if fake_or_PKI == "fake":
@@ -150,9 +138,6 @@ def main():
     # Read cert 0x0500 to confirm
     read_cert = current_card.get_data(Data_slot_ID)
     assert read_cert == cert_data
-    print("PIV card programmed successfully.")
-    input("Press RETURN to quit")
-
-
-if __name__ == "__main__":
-    main()
+    if debug:
+        print("PIV card EC key generated successfully.")
+    return

@@ -189,6 +189,7 @@ DT_VCENTER = 4
 
 AGENT_DATATYPE = 0x804E50BA
 CLOSE_MAGIC = randbits(32)
+class_id = 0
 
 
 def MainWin(win_proc_cb):
@@ -203,7 +204,7 @@ def MainWin(win_proc_cb):
     wndclass.lpszClassName = "Pageant"
 
     # Register Window Class
-    user32.RegisterClassW(byref(wndclass))
+    class_id = user32.RegisterClassW(byref(wndclass))
 
     # Create Window
     user32.CreateWindowExW(
@@ -265,8 +266,14 @@ def gen_cb(cb):
             return 0
         elif message == WM_DESTROY:
             if wParam == CLOSE_MAGIC:
+                ret = user32.DestroyWindow(hwnd)
+                if ret == 0:
+                    raise WinError(get_last_error())
+                ret = user32.UnregisterClassW("Pageant", class_id)
+                if ret == 0:
+                    raise WinError(get_last_error())
                 user32.PostQuitMessage(0)
-                return 0
+                return wParam
         return user32.DefWindowProcW(hwnd, message, wParam, lParam)
 
     return WndProc

@@ -62,6 +62,22 @@ class PIVageantwin(lib.gui.mainwin.PIVageant):
             wx.TheClipboard.Close()
             wx.TheClipboard.Flush()
 
+    def gen_key(self, evt):
+        evt.Skip()
+        confirm_modal = wx.MessageDialog(
+            self,
+            "A new key generation can erase any current key in the dongle.\nConfirm key creation ?",
+            caption="Confirm key generation",
+            style=wx.YES | wx.NO | wx.CENTRE,
+            pos=wx.DefaultPosition,
+        )
+        confirm_modal.SetYesNoLabels("Proceed", "cancel")
+        if confirm_modal.ShowModal() == wx.ID_YES:
+            self.change_status("Key generation ...")
+            self.print_pubkey("")
+            generate_key(DEBUG_OUTPUT)
+            self.waiting_for_pivkey()
+
     def go_start(self, ssh_pubkey):
         self.print_pubkey(ssh_pubkey)
         process_cb = partial(
@@ -73,7 +89,10 @@ class PIVageantwin(lib.gui.mainwin.PIVageant):
         )
         self.change_status("Key read, closing to tray")
         self.cpy_btn.Enable()
-        wx.CallAfter(lib.gui.pageant_win.MainWin, lib.gui.pageant_win.gen_cb(process_cb))
+        close_agentwindow()
+        wx.CallLater(
+            500, lib.gui.pageant_win.MainWin, lib.gui.pageant_win.gen_cb(process_cb)
+        )
 
     def change_status(self, text_status):
         self.status_text.SetLabelText(text_status)
@@ -114,7 +133,7 @@ class PIVageantwin(lib.gui.mainwin.PIVageant):
             wx.CallLater(850, self.sendtray, None)
             return
         if event.type == "Timeout":
-            waiting_for_pivkey(self)
+            self.waiting_for_pivkey()
             return
         if event.type == "Error":
             self.change_status(event.data)
@@ -124,37 +143,40 @@ class PIVageantwin(lib.gui.mainwin.PIVageant):
         wx.CallLater(400, self.Hide)
 
     def closing(self, event):
-        agent_win_id = lib.gui.pageant_win.get_window_id()
-        if agent_win_id != 0:
-            lib.gui.pageant_win.close_window(agent_win_id)
+        close_agentwindow()
         if hasattr(event, "Skip"):
             event.Skip()
         self.trayicon.RemoveIcon()
         self.trayicon.Destroy()
 
+    def waiting_for_pivkey(self):
+        wx.CallLater(250, self.get_pubkey)
+
     def get_pubkey(self):
         try:
-            piv_ssh_public_key = read_pubkey(KEY_NAME, 0.1)
+            piv_ssh_public_key = read_pubkey(KEY_NAME, 0.1, DEBUG_OUTPUT)
             self.change_status("PIV key detected")
+            self.gen_btn.Enable()
             wx.PostEvent(self, PivKeyEvent(type="Connected", data=piv_ssh_public_key))
         except PIVCardTimeoutException:
             wx.PostEvent(self, PivKeyEvent(type="Timeout"))
         except PIVCardException as exc:
             err_msg = str(exc)
             if err_msg == "Error status : 0x6A82":
+                self.gen_btn.Enable()
                 wx.PostEvent(
-                    self, PivKeyEvent(type="Error", data="No key found, run Gen-keys")
+                    self, PivKeyEvent(type="Error", data="No key found, generate a key")
                 )
             else:
-                wx.PostEvent(
-                    self, PivKeyEvent(type="Error", data="Unknown error: " + err_msg)
-                )
+                wx.PostEvent(self, PivKeyEvent(type="Error", data="Error: " + err_msg))
         except ConnectionException as exc:
             wx.PostEvent(self, PivKeyEvent(type="Error", data=str(exc)))
 
 
-def waiting_for_pivkey(curr_frame):
-    wx.CallLater(250, curr_frame.get_pubkey)
+def close_agentwindow():
+    agent_win_id = lib.gui.pageant_win.get_window_id()
+    if agent_win_id != 0:
+        lib.gui.pageant_win.close_window(agent_win_id)
 
 
 def get_path(fpath):
@@ -198,7 +220,7 @@ def mainapp():
     app.main_frame.trayicon = PIVagTray(app.main_frame, icon_file)
 
     app.main_frame.Update()
-    waiting_for_pivkey(app.main_frame)
+    app.main_frame.waiting_for_pivkey()
 
     app.MainLoop()
 
