@@ -154,11 +154,11 @@ def decode_do(data, start_index):
         tag = data[i] * 256 + data[i + 1]
         i += 2
     else:
-        # tag is 1 byte
+        # Tag is 1 byte
         tag = data[i]
         i += 1
     if data[i] & 128 > 0:
-        # composed len
+        # Composed len
         len_len = data[i] - 128
         len_data = 0
         while len_len:
@@ -168,7 +168,7 @@ def decode_do(data, start_index):
             len_len -= 1
         i += 1
     else:
-        # simple len
+        # Simple len
         len_data = data[i]
         i += 1
     data_read = data[i : i + len_data]

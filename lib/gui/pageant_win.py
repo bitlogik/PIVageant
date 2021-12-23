@@ -199,6 +199,7 @@ def MainWin(callback):
     def CustomWndProc(hwnd, message, wParam, lParam):
         global class_id
         if message == WM_COPYDATA:
+            # Entry point from the SSH client
             handle_wmcopy(lParam, hwnd, callback)
             return 0
         elif message == WM_DESTROY:
@@ -273,7 +274,7 @@ def handle_wmcopy(wmcp_adr, hwmn, handle_command):
             raise Exception("Too many data received")
         cmd_rcvd = conn_mmap.read(retlen)
         resp = handle_command(cmd_rcvd)
-        # Reply
+        # Reply to the SSH client
         conn_mmap.seek(0)
         conn_mmap.write(resp)
         user32.ReplyMessage(len(resp))

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # PIVageant
-# a Pageant SSH agent with PIV dongle
+# a Windows Pageant SSH agent with PIV dongle
 # Copyright (C) 2021  BitLogiK
 #
 # This program is free software: you can redistribute it and/or modify
