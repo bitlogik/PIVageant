@@ -23,7 +23,7 @@ class PIVageant ( wx.Frame ):
 
         bSizer3 = wx.BoxSizer( wx.VERTICAL )
 
-        self.main_panel = wx.Panel( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
+        self.main_panel = wx.Panel( self, wx.ID_ANY, wx.DefaultPosition, wx.Size( -1,-1 ), wx.TAB_TRAVERSAL )
         bSizer1 = wx.BoxSizer( wx.VERTICAL )
 
         self.pubkey_text = wx.TextCtrl( self.main_panel, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, wx.TE_CHARWRAP|wx.TE_MULTILINE|wx.TE_NO_VSCROLL|wx.TE_READONLY )
@@ -33,20 +33,20 @@ class PIVageant ( wx.Frame ):
 
         bSizer4 = wx.BoxSizer( wx.HORIZONTAL )
 
-        self.cpy_btn = wx.Button( self.main_panel, wx.ID_ANY, u"copy", wx.DefaultPosition, wx.Size( -1,45 ), 0 )
+        self.cpy_btn = wx.Button( self.main_panel, wx.ID_ANY, u"copy", wx.DefaultPosition, wx.Size( 120,50 ), 0 )
         self.cpy_btn.SetFont( wx.Font( 14, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, False, wx.EmptyString ) )
         self.cpy_btn.Enable( False )
 
-        bSizer4.Add( self.cpy_btn, 0, wx.ALIGN_CENTER_HORIZONTAL|wx.ALL|wx.ALIGN_CENTER_VERTICAL, 3 )
+        bSizer4.Add( self.cpy_btn, 0, wx.ALIGN_CENTER_HORIZONTAL|wx.ALIGN_CENTER_VERTICAL|wx.ALL, 3 )
 
 
         bSizer4.Add( ( 80, 0), 0, 0, 5 )
 
-        self.gen_btn = wx.Button( self.main_panel, wx.ID_ANY, u"+ new key", wx.DefaultPosition, wx.Size( -1,45 ), 0 )
-        self.gen_btn.SetFont( wx.Font( 14, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, False, wx.EmptyString ) )
+        self.gen_btn = wx.Button( self.main_panel, wx.ID_ANY, u"+ new key", wx.DefaultPosition, wx.Size( -1,40 ), 0 )
+        self.gen_btn.SetFont( wx.Font( 12, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, False, wx.EmptyString ) )
         self.gen_btn.Enable( False )
 
-        bSizer4.Add( self.gen_btn, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
+        bSizer4.Add( self.gen_btn, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
 
 
         bSizer1.Add( bSizer4, 0, wx.ALIGN_CENTER_HORIZONTAL, 5 )
