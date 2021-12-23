@@ -1,18 +1,21 @@
+"""Various SSH and openSSH helpers for encoding and decoding"""
+
 import base64
 
 
 def pack_reply(reply_msg):
-    # Add message length header, as per SSH and agent protocol
+    """Add message length header, as per SSH and agent protocol"""
     uintlen = (len(reply_msg)).to_bytes(4, byteorder="big")
     return uintlen + reply_msg
 
 
 def read_len(buffer):
-    # Return the message length header as integer
+    """Return the message length header as integer"""
     return int.from_bytes(buffer[:4], "big")
 
 
 def encode_pubkey(pubkey, identifier, key_blob_id):
+    """Pack a public key in the openssh format"""
     return (
         pack_reply(identifier.encode("ascii"))
         + pack_reply(key_blob_id.encode("ascii"))
@@ -21,7 +24,7 @@ def encode_pubkey(pubkey, identifier, key_blob_id):
 
 
 def parse_datasig(data):
-    # Parse and validate the data to be signed
+    """Parse and validate the data to be signed"""
     # According to RFC4252 7.
     i = 0
     len_part = read_len(data[i:])
@@ -51,12 +54,13 @@ def parse_datasig(data):
 
 
 def decode_ssh(data):
+    """Fast decoding of openssh into binary"""
     ssh_data = data.split(" ")[1]
     return base64.b64decode(ssh_data)
 
 
 def openssh_to_wire(key_openssh):
-    # Serialize an RFC4253 OpenSSH public key from text to binary
+    """Serialize an RFC4253 OpenSSH public key from text to binary"""
     key_data = key_openssh.split(" ")
     return pack_reply(base64.b64decode(key_data[1])) + pack_reply(
         bytes(key_data[2], "utf8")
@@ -78,7 +82,7 @@ def encode_openssh(pubkey_bytes, comment_text):
 
 
 def parse_sign_command(sign_cmd, debug):
-    # Parse sign query, and extract the data to sign
+    """Parse sign query, and extract the data to sign"""
     idseek = 0
     keyblob_len = read_len(sign_cmd)
     idseek += 4
@@ -97,7 +101,7 @@ def parse_sign_command(sign_cmd, debug):
 
 
 def decode_sig(sig):
-    # DER to packed mpint blob R|S - RFC5656 3.1.2
+    """DER to packed mpint blob R|S - RFC5656 3.1.2"""
     if sig[0] != 0x30:
         raise Exception("Wrong signature header")
     if sig[2] != 0x02:

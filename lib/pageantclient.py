@@ -17,7 +17,7 @@
 
 from cryptography import x509
 from cryptography.hazmat.primitives.serialization import PublicFormat, Encoding
-from ssh_encodings import (
+from lib.ssh.ssh_encodings import (
     encode_openssh,
     pack_reply,
     read_len,
@@ -25,7 +25,7 @@ from ssh_encodings import (
     parse_datasig,
     decode_sig,
 )
-from piv_card import PIVcard, ALG_ECP256, ALG_ECP384
+from lib.piv.piv_card import PIVcard, ALG_ECP256, ALG_ECP384
 
 OP_REQUEST_IDS = 11
 IDS_RESPONSE = 12
@@ -35,7 +35,7 @@ ERROR_CODE = b"\x05"
 
 
 def read_pubkey(keyname, timeout):
-    # Read the PIV key certificate
+    """Read the PIV key certificate"""
     # X509 decoding, then encoded to OpenSSH format
     my_piv_card = PIVcard(timeout, True)
     cert_raw = my_piv_card.get_data("5FC101")
@@ -47,7 +47,7 @@ def read_pubkey(keyname, timeout):
 
 
 def process_command(debug_agent, ssh_wire_key, show_main_win, finish_cb, data=b""):
-    # Entry point to this Pageant client
+    """Entry point to this Pageant client"""
     request_type = data[0]
     request_data = data[1:]
     if debug_agent:
@@ -73,7 +73,7 @@ def process_command(debug_agent, ssh_wire_key, show_main_win, finish_cb, data=b"
 
 
 def list_identitites(ssh_wire_key):
-    # Raw list of keys
+    """Raw list of keys"""
     # return b"\x0c\x00\x00\x00\x01" + openssh_to_wire()
     list_type = IDS_RESPONSE.to_bytes(1, byteorder="big")
     n_ids_int = 1

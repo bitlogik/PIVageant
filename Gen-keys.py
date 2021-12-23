@@ -18,14 +18,14 @@
 
 import subprocess
 from _version import __version__
-from piv_card import (
+from lib.piv.piv_card import (
     PIVcard,
     PIVCardException,
     PIVCardTimeoutException,
     ALG_ECP256,
     ALG_ECP384,
 )
-from ssh_encodings import decode_ssh, encode_openssh
+from lib.ssh.ssh_encodings import decode_ssh, encode_openssh
 
 
 ADMIN_KEYS = [
@@ -114,7 +114,6 @@ def main():
     keyalgo = 0x14  # EC 384
     try:
         # try with EC 384 bits
-        # raise PIVCardException(0, 0)
         pubkey_resp = current_card.gen_asymmetric(key_slot_gen, keyalgo)
     except PIVCardException:
         keyalgo = 0x11  # Fallback to EC 256

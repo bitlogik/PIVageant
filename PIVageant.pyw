@@ -17,19 +17,19 @@
 
 
 from functools import partial
-import ctypes
+from ctypes import windll
 import os
 import sys
 import wx
 import wx.lib.newevent
-import mainwin
-import pageant_win
-import pageantclient
+import lib.gui.mainwin
+import lib.gui.pageant_win
+from lib.gui.getwin import check_pageant_running
+from lib.gui.systemtray import PIVagTray
+from lib.piv.piv_card import PIVCardException, PIVCardTimeoutException, ConnectionException
+from lib.ssh.ssh_encodings import openssh_to_wire
+from lib.pageantclient import process_command, read_pubkey
 from _version import __version__
-from getwin import check_pageant_running
-from systemtray import PIVagTray
-from piv_card import PIVCardException, PIVCardTimeoutException, ConnectionException
-from ssh_encodings import openssh_to_wire
 
 KEY_NAME = "ECPSSHKey"
 
@@ -45,14 +45,14 @@ def is_tty():
 DEBUG_OUTPUT = is_tty()
 
 
-class ModalWait(mainwin.ModalDialog):
+class ModalWait(lib.gui.mainwin.ModalDialog):
     def end_sign(self, event):
         if event:
             event.Skip()
         self.Destroy()
 
 
-class PIVageantwin(mainwin.PIVageant):
+class PIVageantwin(lib.gui.mainwin.PIVageant):
     def copy_content(self, event):
         if wx.TheClipboard.Open():
             pubkey_str = wx.TextDataObject(
@@ -65,7 +65,7 @@ class PIVageantwin(mainwin.PIVageant):
     def go_start(self, ssh_pubkey):
         self.print_pubkey(ssh_pubkey)
         process_cb = partial(
-            pageantclient.process_command,
+            process_command,
             DEBUG_OUTPUT,
             openssh_to_wire(ssh_pubkey),
             self.sign_status,
@@ -73,7 +73,7 @@ class PIVageantwin(mainwin.PIVageant):
         )
         self.change_status("Key read, closing to tray")
         self.cpy_btn.Enable()
-        wx.CallAfter(pageant_win.MainWin, pageant_win.gen_cb(process_cb))
+        wx.CallAfter(lib.gui.pageant_win.MainWin, lib.gui.pageant_win.gen_cb(process_cb))
 
     def change_status(self, text_status):
         self.status_text.SetLabelText(text_status)
@@ -124,9 +124,9 @@ class PIVageantwin(mainwin.PIVageant):
         wx.CallLater(400, self.Hide)
 
     def closing(self, event):
-        agent_win_id = pageant_win.get_window_id()
+        agent_win_id = lib.gui.pageant_win.get_window_id()
         if agent_win_id != 0:
-            pageant_win.close_window(agent_win_id)
+            lib.gui.pageant_win.close_window(agent_win_id)
         if hasattr(event, "Skip"):
             event.Skip()
         self.trayicon.RemoveIcon()
@@ -134,7 +134,7 @@ class PIVageantwin(mainwin.PIVageant):
 
     def get_pubkey(self):
         try:
-            piv_ssh_public_key = pageantclient.read_pubkey(KEY_NAME, 0.1)
+            piv_ssh_public_key = read_pubkey(KEY_NAME, 0.1)
             self.change_status("PIV key detected")
             wx.PostEvent(self, PivKeyEvent(type="Connected", data=piv_ssh_public_key))
         except PIVCardTimeoutException:
@@ -176,7 +176,7 @@ PivKeyEvent, EVT_PIVKEY_EVENT = wx.lib.newevent.NewEvent()
 
 def mainapp():
     app = wx.App()
-    ctypes.windll.shcore.SetProcessDpiAwareness(True)
+    windll.shcore.SetProcessDpiAwareness(2)
 
     # Check if a Pageant is running
     if check_pageant_running():

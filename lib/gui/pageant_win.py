@@ -16,6 +16,7 @@
 
 import mmap
 import platform
+from secrets import randbits
 from ctypes import (
     WinDLL,
     windll,
@@ -187,6 +188,7 @@ DT_CENTER = 1
 DT_VCENTER = 4
 
 AGENT_DATATYPE = 0x804E50BA
+CLOSE_MAGIC = randbits(32)
 
 
 def MainWin(win_proc_cb):
@@ -262,9 +264,9 @@ def gen_cb(cb):
             handle_wmcopy(lParam, hwnd, cb)
             return 0
         elif message == WM_DESTROY:
-            # if hwnd == main_window: or check magic
-            user32.PostQuitMessage(0)
-            return 0
+            if wParam == CLOSE_MAGIC:
+                user32.PostQuitMessage(0)
+                return 0
         return user32.DefWindowProcW(hwnd, message, wParam, lParam)
 
     return WndProc
@@ -275,5 +277,4 @@ def get_window_id():
 
 
 def close_window(winid):
-    # ToDo ? Send with a magic
-    windll.user32.SendMessageA(winid, WM_DESTROY, 0, 0)
+    windll.user32.SendMessageA(winid, WM_DESTROY, CLOSE_MAGIC, 0)

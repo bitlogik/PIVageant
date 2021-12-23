@@ -19,7 +19,6 @@ from hashlib import sha256, sha384
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 
 try:
-    from smartcard.CardType import CardType
     from smartcard.CardRequest import CardRequest
     from smartcard.util import toBytes, toHexString
     from smartcard.Exceptions import CardRequestTimeoutException
@@ -81,7 +80,7 @@ def ishex(istring):
 
 
 def check_hex(func):
-    # Decorator to check the first method argument
+    """Decorator to check the first method argument"""
     #  is 2/4 string hex (a DO short address)
     # Expands the hex string from 2 to 4 hex chars (adds leading 0)
     def func_wrapper(*args):
@@ -119,7 +118,7 @@ def to_hex_list(liststr):
 
 
 def decode_hex_int(listint):
-    # read encoded number or date
+    """Read encoded number or date"""
     ret = ""
     for item in listint:
         ret += f"{item:02X}"
@@ -127,7 +126,7 @@ def decode_hex_int(listint):
 
 
 def decode_dol(data, level=0):
-    # Decode ASN1 BER/DER Data Objects into a Python object
+    """Decode ASN1 BER/DER Data Objects into a Python object"""
     dol_out = {}
     idx = 0
     len_all_data = len(data)
@@ -148,7 +147,7 @@ def decode_dol(data, level=0):
 
 
 def decode_do(data, start_index):
-    # Basic ASN1 BER/DER decoder for a DO
+    """Basic ASN1 BER/DER decoder for a DO"""
     i = start_index
     if data[i] & 31 == 31:
         # Tag has 2 bytes
@@ -181,9 +180,9 @@ def encode_do(do_data):
     do_len = len(do_data)
     if do_len < 128:
         return [do_len, *do_data]
-    elif do_len < 256:
+    if do_len < 256:
         return [0x81, do_len, *do_data]
-    elif do_len < 65536:
+    if do_len < 65536:
         return [0x82, do_len >> 8, do_len % 256, *do_data]
     raise BadInputException("Data too long.")
 
@@ -204,8 +203,8 @@ COMPATIBLE_CARDS_HEX = [
 ]
 
 
-class CardsATRList(CardType):
-    """Derive CardType class to use a list of different possibles ATRs"""
+class CardsATRList:
+    """A kind of CardType class to use a list of different possibles ATRs"""
 
     def __init__(self, atr_list):
         """Initialize the card type with a list of ATR"""
@@ -273,7 +272,7 @@ class PIVcard:
         self.url_spec = ""
         self.algos = []
         self.hash_on_card = False
-        self.SM_capable = False
+        self.sm_capable = False
         self.yubi_version = ""
         self.yubi_serial = 0
         self.is_yubico = False
@@ -282,7 +281,7 @@ class PIVcard:
         if card_info.get("AC"):
             self.algos = [ord(v) for v in card_info["AC"]["80"]]
         if self.algos and ((ALG_CS2 in self.algos) or (ALG_CS7 in self.algos)):
-            self.SM_capable = True
+            self.sm_capable = True
         if ALG_ECP256_SHA256 in self.algos:
             self.hash_on_card = True
         self.yubi_version = self.yubi_get_version()
@@ -299,17 +298,17 @@ class PIVcard:
                     self.yubi_serial,
                 )
             print(" Algorithms supported :", [f"0x{alg:02X}" for alg in self.algos])
-            print(" Secure Messaging capable ?", "yes" if self.SM_capable else "no")
+            print(" Secure Messaging capable ?", "yes" if self.sm_capable else "no")
         time.sleep(0.25)
 
     def __del__(self):
-        # Disconnect device
+        """Disconnect device"""
         if hasattr(self, "cardservice"):
             self.cardservice.connection.disconnect()
             del self.cardservice
 
     def send_apdu(self, apdu):
-        # send APDU. apdu is a list of integers (uint 8 array/list)
+        """Send APDU. apdu is a list of integers (uint 8 array/list)"""
         # [ INS, CLA, param_1, param_2, Len, data... ]
         if self.debug:
             print(f" Sending 0x{apdu[1]:X} command with {(len(apdu) - 5)} bytes data")
@@ -327,21 +326,21 @@ class PIVcard:
         return data, sw_byte1, sw_byte2
 
     def send_command(self, cmdh, data):
-        # data can be int list or bytesarray
+        """data can be int list or bytesarray"""
         i = 0
         lendata = len(data)
         if isinstance(data, list):
             full_data = bytes(data)
         else:  # bytes or bytearray
             full_data = data
-        DATA_BLOCK_SIZE = 247
-        while lendata > DATA_BLOCK_SIZE:
-            data_apdu = full_data[i : i + DATA_BLOCK_SIZE]
+        data_block_size = 247
+        while lendata > data_block_size:
+            data_apdu = full_data[i : i + data_block_size]
             apdu_command = cmdh + [len(data_apdu)] + to_list(data_apdu)
             apdu_command[0] |= 0x10
             self.send_apdu(apdu_command)
-            i += DATA_BLOCK_SIZE
-            lendata -= DATA_BLOCK_SIZE
+            i += data_block_size
+            lendata -= data_block_size
         data_apdu = full_data[i:]
         apdu_command = cmdh + [len(data_apdu)] + to_list(data_apdu)
         datar, sw_byte1, sw_byte2 = self.send_apdu(apdu_command)
@@ -366,7 +365,7 @@ class PIVcard:
         return datar
 
     def yubi_get_version(self):
-        # Yubico extension
+        """Yubico extension"""
         version_command = [0x00, 0xFD, 0x00, 0x00]
         try:
             version_bin = self.send_command(version_command, b"")
@@ -377,7 +376,7 @@ class PIVcard:
             return ""
 
     def get_serial(self):
-        # Yubico extension, only available on Yubikey 5
+        """Yubico extension, only available on Yubikey 5"""
         serial_command = [0x00, 0xF8, 0x00, 0x00]
         serial_bin = self.send_command(serial_command, b"")
         try:
@@ -386,7 +385,7 @@ class PIVcard:
             return 0
 
     def reset(self):
-        # PIV extension, only available when both PIN and PUK are blocked.
+        """PIV extension, only available when both PIN and PUK are blocked."""
         reset_command = [0x00, 0xFB, 0x00, 0x00]
         return self.send_command(reset_command, b"")
 
@@ -401,7 +400,7 @@ class PIVcard:
         return self.send_command(apdu_command, data)
 
     def sign_ec(self, algo, keyref, message):
-        # EC Sign a message
+        """EC Sign a message"""
         if self.algos and algo not in self.algos:
             raise BadInputException("This PIV device doesn't support this algorithm")
         if self.hash_on_card:
@@ -432,15 +431,15 @@ class PIVcard:
         mode_algo = modes.ECB()
         cipher = Cipher(enc_algo, mode_algo)
         encryptor = cipher.encryptor()
-        ct = encryptor.update(challenge)
+        data_enc = encryptor.update(challenge)
         # Response 0x82
-        resp_data = [0x82, *encode_do(ct)]
+        resp_data = [0x82, *encode_do(data_enc)]
         # 0x6982 status if rejected
         auth_resp = self.general_authenticate(keyalgo, key_ref, resp_data)
         return auth_resp
 
     def gen_asymmetric(self, keyref, keyalgo):
-        # 0 0x47 0 0x9E L 0xAC 6 0x80 1 ALGO 0xAB 1 2
+        """Generate a key pair"""
         # key algo : PIV NIST 800-73-4 Part 1 5.3 Table 5
         apdu_command = [
             0x00,
@@ -448,16 +447,11 @@ class PIVcard:
             0,
             keyref,
         ]
-        data = [
-            0xAC,
-            3,
-            0x80,
-            1,
-            keyalgo,
-            # 0xAB,
-            # 1,
-            # 0x02,
-        ]
+        data = [0xAC, 3, 0x80, 1, keyalgo]
+        if self.is_yubico:
+            # Add extention for touch confirmation
+            data[1] = 6
+            data.extend([0xAB, 1, 0x02])
         gen_resp = self.send_command(apdu_command, data)
         if gen_resp[:2] != [0x7F, 0x49] or len(gen_resp) != gen_resp[2] + 3:
             raise DataException("Bad data received from Generate Asymmetric command")
@@ -465,16 +459,13 @@ class PIVcard:
         # if ECC384, keyalg = 0x14 -> gen_resp[4]:keylen == 97
         # return public key data, for ECC 86 : 04 ..
         return decode_dol(gen_resp[3:])
-        # ToDo ? : build certificate for this key
-        # Upload it in container id 0x0500 TLV: '5FC101'
-        # For now, done by agent files
 
-    def get_data(self, fileTLVhex):
-        # Binary read / ISO read the object
-        lenaddr = len(fileTLVhex) // 2
-        data_hex = f"5C{'%02X'%lenaddr}" + fileTLVhex
+    def get_data(self, file_tlv_hex):
+        """Binary read / ISO read the object"""
+        lenaddr = len(file_tlv_hex) // 2
+        data_hex = f"5C{lenaddr:02X}{file_tlv_hex}"
         if self.debug:
-            print(f"Read Data {data_hex} in 0x{fileTLVhex}")
+            print(f"Read Data in 0x{file_tlv_hex}")
         apdu_command = [0x00, 0xCB, 0x3F, 0xFF]
         data = bytes.fromhex(data_hex)
         dataresp = self.send_command(apdu_command, data)
@@ -482,15 +473,15 @@ class PIVcard:
             if dataresp[0] != 0x53:
                 raise DataException("Bad data received from Get Data command")
             return decode_dol(dataresp)["53"]
-        if lenaddr == 1 and dataresp[0] != int(fileTLVhex, 16):
+        if lenaddr == 1 and dataresp[0] != int(file_tlv_hex, 16):
             raise DataException("Bad data received from Get Data command")
-        return decode_dol(dataresp)[fileTLVhex]
+        return decode_dol(dataresp)[file_tlv_hex]
 
-    def put_data(self, fileTLVhex, data_bin):
-        # Binary read / ISO read the object
-        data_hex = "5C03" + fileTLVhex
+    def put_data(self, file_tlv_hex, data_bin):
+        """Binary write / ISO write the object"""
+        data_hex = "5C03" + file_tlv_hex
         if self.debug:
-            print(f"Put Data {data_bin.hex()} in 0x{fileTLVhex}")
+            print(f"Put Data {data_bin.hex()} in 0x{file_tlv_hex}")
         len_data_bin_b1 = len(data_bin) >> 8
         len_data_bin_b2 = len(data_bin) % 256
         full_data = (
@@ -502,7 +493,7 @@ class PIVcard:
         self.send_command(apdu_command, full_data)
 
     def get_pin_status(self, pin_bank):
-        # return remaining tries left for the given PIN bank address
+        """Return remaining tries left for the given PIN bank address"""
         # if 0 : PIN is blocked, if 9000 : PIN has been verified
         try:
             self.verify_pin(pin_bank, "")
@@ -515,7 +506,7 @@ class PIVcard:
             raise
 
     def verify_pin(self, pin_bank, pin_string):
-        # Verify PIN code : pin_bank
+        """Verify PIN code : pin_bank"""
         if pin_string:
             pin_data = pin_string.encode("ascii")
             while len(pin_data) < 8:
