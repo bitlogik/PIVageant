@@ -1,7 +1,8 @@
 # Download PyInstaller source in pyinstaller-VERSION.zip
 # python3 get-pyinst-src.py VERSION
 
-import sys, urllib.request
+import sys
+import urllib.request
 
 pyinstver = sys.argv[1]
 print(pyinstver)

@@ -95,9 +95,7 @@ class PIVageantwin(lib.gui.mainwin.PIVageant):
         self.change_status("Key read, closing to tray")
         self.cpy_btn.Enable()
         close_agentwindow()
-        wx.CallLater(
-            500, lib.gui.pageant_win.MainWin, lib.gui.pageant_win.gen_cb(process_cb)
-        )
+        wx.CallLater(500, lib.gui.pageant_win.MainWin, process_cb)
 
     def change_status(self, text_status):
         self.status_text.SetLabelText(text_status)

@@ -20,7 +20,6 @@ import subprocess
 from lib.piv.piv_card import (
     PIVcard,
     PIVCardException,
-    PIVCardTimeoutException,
     ALG_ECP256,
     ALG_ECP384,
 )

@@ -212,7 +212,7 @@ def MainWin(callback):
                 user32.PostQuitMessage(0)
                 return wParam
         return user32.DefWindowProcW(hwnd, message, wParam, lParam)
-    
+
     wndclass = WNDCLASSW()
     wndclass.style = CS_HREDRAW | CS_VREDRAW
     wndclass.lpfnWndProc = WNDPROC(CustomWndProc)
