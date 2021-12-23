@@ -18,7 +18,13 @@
 
 import subprocess
 from _version import __version__
-import piv_card
+from piv_card import (
+    PIVcard,
+    PIVCardException,
+    PIVCardTimeoutException,
+    ALG_ECP256,
+    ALG_ECP384,
+)
 from ssh_encodings import decode_ssh, encode_openssh
 
 
@@ -30,37 +36,49 @@ KEY_NAME = "ECPSSHKey"
 
 
 def build_certificate(datakey, key_algo):
-    # fake signature
-    if key_algo == 0x11 and len(datakey) != 65:
+    """Build a certificate with a fake signature"""
+    if key_algo != ALG_ECP256 and key_algo != ALG_ECP384:
+        raise Exception("Incompatible key algo")
+    if key_algo == ALG_ECP256 and len(datakey) != 65:
         raise Exception("invalid public key length")
-    if key_algo == 0x14 and len(datakey) != 97:
+    if key_algo == ALG_ECP384 and len(datakey) != 97:
         raise Exception("invalid public key length")
-    return (
-        "7082"
-        "013e"  # "015b"
-        "3082"
-        "013a"  # "0157"
-        "3081"
-        "c2"  # "df"
+    cert_hex = "7082"
+    if key_algo == ALG_ECP384:
+        cert_hex += "015b"
+    else:
+        cert_hex += "013e"
+    cert_hex += "3082"
+    if key_algo == ALG_ECP384:
+        cert_hex += "01573081df"
+    else:
+        cert_hex += "013a3081c2"
+    cert_hex += (
         "a003020102021465fb4509c1e90575ef9eccc57f5f"
         "96ffc56b22b7300a06082a8648ce3d040302300e310c300a06035504030c0353"
         "5348301e170d3231303232373133333532395a170d3332303232353030303030"
         "305a300e310c300a06035504030c03535348"
         "30"
-        "59"  # "76"
-        "30"
-        "13"  # "10"
-        "06072a8648ce3d0201"
-        # P384 OID=1.3.132.0.34
-        # "06052b81040022036200"
-        # P256 OID=1.2.840.10045.3.1.7
-        "06082a8648ce3d030107034200"
-        + datakey.hex()
-        + "300a06082a8648ce3d040302036700306402300331a54b279f7f91e41f81b814"
+    )
+    if key_algo == ALG_ECP384:
+        cert_hex += "763010"
+    else:
+        cert_hex += "593013"
+    cert_hex += "06072a8648ce3d0201"
+    if key_algo == ALG_ECP384:
+        # OID : 1.3.132.0.34
+        cert_hex += "06052b81040022036200"
+    else:
+        # OID : 1.2.840.10045.3.1.7
+        cert_hex += "06082a8648ce3d030107034200"
+    cert_hex += datakey.hex()
+    cert_hex += (
+        "300a06082a8648ce3d040302036700306402300331a54b279f7f91e41f81b814"
         "dfec2190e24155824f402ca333f1a9bbc8b985f91bb12a7b7432faae142943db"
         "2a4fcb0230704fd3f7a8f6101c5e2dcee92b2eeca398550a482618f6024a8a71"
         "079fa0ddae4e53aee330b62201a651e04b1d73d418710100fe00"
     )
+    return bytes.fromhex(cert_hex)
 
 
 fake_or_PKI = "fake"
@@ -73,10 +91,10 @@ def main():
     current_card = None
     while not current_card:
         try:
-            current_card = piv_card.PIVcard(1)
+            current_card = PIVcard(1)
         except KeyboardInterrupt:
             return
-        except piv_card.PIVCardTimeoutException:
+        except PIVCardTimeoutException:
             continue
     print("OK, PIV device detected")
     admin_keyref = 0x9B
@@ -86,7 +104,7 @@ def main():
         admin_key = bytes.fromhex(admin_key)
         try:
             current_card.external_auth_admin(admin_keyref, algo_used, admin_key)
-        except piv_card.PIVCardException:
+        except PIVCardException:
             continue
         break
     key_slot_gen = 0x9E  # Card auth key
@@ -96,9 +114,9 @@ def main():
     keyalgo = 0x14  # EC 384
     try:
         # try with EC 384 bits
-        raise piv_card.PIVCardException(0, 0)
+        # raise PIVCardException(0, 0)
         pubkey_resp = current_card.gen_asymmetric(key_slot_gen, keyalgo)
-    except piv_card.PIVCardException:
+    except PIVCardException:
         keyalgo = 0x11  # Fallback to EC 256
         pubkey_resp = current_card.gen_asymmetric(key_slot_gen, keyalgo)
     openssh_pukey = encode_openssh(pubkey_resp["86"], KEY_NAME)
@@ -114,7 +132,7 @@ def main():
     pubkey_bin = pubkey_resp["86"]
     # Generate certificate for this key
     if fake_or_PKI == "fake":
-        cert_data_hex = build_certificate(pubkey_bin, keyalgo)
+        cert_data = build_certificate(pubkey_bin, keyalgo)
     else:
         f = open("pivkey.pub", "w")
         f.write(openssh_pukey)
@@ -123,7 +141,7 @@ def main():
         subprocess.run(sign_cmd, shell=True, check=True, stdout=subprocess.PIPE)
     # Write certificate in the card
     if fake_or_PKI == "fake":
-        current_card.put_data(Data_slot_ID, bytes.fromhex(cert_data_hex))
+        current_card.put_data(Data_slot_ID, cert_data)
     else:
         fr = open("pivkey-cert.pub", "r")
         fr.seek(0)
@@ -131,8 +149,8 @@ def main():
         fr.close()
         current_card.put_data(Data_slot_ID, decode_ssh(cert_data))
     # Read cert 0x0500 to confirm
-    read_cert = current_card.get_data(Data_slot_ID).hex()
-    assert read_cert == cert_data_hex
+    read_cert = current_card.get_data(Data_slot_ID)
+    assert read_cert == cert_data
     print("PIV card programmed successfully.")
     input("Press RETURN to quit")
 

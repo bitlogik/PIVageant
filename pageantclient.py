@@ -25,7 +25,7 @@ from ssh_encodings import (
     parse_datasig,
     decode_sig,
 )
-import piv_card
+from piv_card import PIVcard, ALG_ECP256, ALG_ECP384
 
 OP_REQUEST_IDS = 11
 IDS_RESPONSE = 12
@@ -37,7 +37,7 @@ ERROR_CODE = b"\x05"
 def read_pubkey(keyname, timeout):
     # Read the PIV key certificate
     # X509 decoding, then encoded to OpenSSH format
-    my_piv_card = piv_card.PIVcard(timeout, True)
+    my_piv_card = PIVcard(timeout, True)
     cert_raw = my_piv_card.get_data("5FC101")
     cert = x509.load_der_x509_certificate(cert_raw[4:-5])
     pubkey = cert.public_key().public_bytes(
@@ -82,25 +82,32 @@ def list_identitites(ssh_wire_key):
 
 
 def sign_request(sign_req, local_ssh_key, open_user_modal, debug_piv=False):
-    # Parse, check and sign the signature query
-    SIG_HEADER_STRING = b"ecdsa-sha2-nistp256"
+    """Parse, check and sign the signature query"""
+    key_type = local_ssh_key[24:27]
+    if key_type == b"256":
+        keyalgo = ALG_ECP256
+    elif key_type == b"384":
+        keyalgo = ALG_ECP384
+    else:
+        raise Exception("Incompatible key type")
+    SIG_HEADER_STRING = b"ecdsa-sha2-nistp" + key_type
     signature_data = parse_sign_command(sign_req, debug_piv)
     print("Data to sign request :", signature_data)
-    current_card = piv_card.PIVcard(15, debug_piv)
+    current_card = PIVcard(15, debug_piv)
     if debug_piv:
         print("PIV device detected")
     # Check data to be signed
     sig_data = parse_datasig(signature_data)
     local_pubkey = pack_reply(local_ssh_key[4 : 4 + read_len(local_ssh_key)])
+    sig_header = pack_reply(SIG_HEADER_STRING)
     # Sign query is for the same public key ?
-    assert sig_data["publickey"] == pack_reply(SIG_HEADER_STRING) + local_pubkey
+    if sig_data["publickey"] != sig_header + local_pubkey:
+        raise Exception("Public key mismatch")
     # All checks OK, proceed to sign
     open_user_modal(sig_data["username"])
     key_slot_gen = 0x9E
-    keyalgo = 0x11  # ECC 384
     der_signature = current_card.sign_ec(keyalgo, key_slot_gen, signature_data)
     del current_card
     sig_type = SIGN_RESPONSE.to_bytes(1, byteorder="big")
-    sig_header = pack_reply(SIG_HEADER_STRING)
     signature = pack_reply(decode_sig(der_signature))
     return sig_type + pack_reply(sig_header + signature)
