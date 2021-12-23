@@ -71,19 +71,27 @@ class PIVageantwin(lib.gui.mainwin.PIVageant):
 
     def gen_key(self, evt):
         evt.Skip()
+        self.gen_btn.Disable()
         confirm_modal = wx.MessageDialog(
             self,
-            "A new key generation can erase any current key in the dongle.\nConfirm key creation ?",
+            "A new key generation can erase any current key in the dongle."
+            "\nConfirm the key creation ?",
             caption="Confirm key generation",
             style=wx.YES | wx.NO | wx.CENTRE,
             pos=wx.DefaultPosition,
         )
         confirm_modal.SetYesNoLabels("Proceed", "cancel")
         if confirm_modal.ShowModal() == wx.ID_YES:
+            self.cpy_btn.Disable()
             self.change_status("Key generation ...")
             self.print_pubkey("")
-            generate_key(DEBUG_OUTPUT)
-            self.waiting_for_pivkey()
+            res_gen = generate_key(DEBUG_OUTPUT)
+            if res_gen == "done":
+                self.waiting_for_pivkey()
+            else:
+                self.change_status(res_gen)
+        else:
+            self.gen_btn.Enable()
 
     def go_start(self, ssh_pubkey):
         self.print_pubkey(ssh_pubkey)

@@ -83,17 +83,21 @@ fake_or_PKI = "fake"
 
 
 def generate_key(debug=False):
-    current_card = PIVcard(0.2)
+    current_card = PIVcard(0.5, debug)
     admin_keyref = 0x9B
     algo_used = 0x03
     # Auth admin
+    admin_auth = False
     for admin_key in ADMIN_KEYS:
         admin_key = bytes.fromhex(admin_key)
         try:
             current_card.external_auth_admin(admin_keyref, algo_used, admin_key)
+            admin_auth = True
         except PIVCardException:
             continue
         break
+    if not admin_auth:
+        return "Invalid admin key"
     key_slot_gen = 0x9E  # Card auth key
     Data_slot_ID = "5FC101"
     # key_slot_gen = 0x9C # Digital Signature Key
@@ -136,7 +140,8 @@ def generate_key(debug=False):
         current_card.put_data(Data_slot_ID, decode_ssh(cert_data))
     # Read cert 0x0500 to confirm
     read_cert = current_card.get_data(Data_slot_ID)
-    assert read_cert == cert_data
+    if read_cert != cert_data:
+        return "Error during data check"
     if debug:
         print("PIV card EC key generated successfully.")
-    return
+    return "done"
