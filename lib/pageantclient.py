@@ -103,7 +103,7 @@ def sign_request(sign_req, local_ssh_key, open_user_modal, debug_piv=False):
     if sig_data["publickey"] != sig_header + local_pubkey:
         raise Exception("Public key mismatch")
     # All checks OK, proceed to sign
-    open_user_modal(sig_data["username"])
+    open_user_modal(sig_data["username"], {"isYubico": current_card.is_yubico})
     key_slot_gen = 0x9E
     der_signature = current_card.sign_ec(keyalgo, key_slot_gen, signature_data)
     del current_card

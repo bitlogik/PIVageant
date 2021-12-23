@@ -100,10 +100,12 @@ class PIVageantwin(lib.gui.mainwin.PIVageant):
     def change_status(self, text_status):
         self.status_text.SetLabelText(text_status)
 
-    def sign_status(self, user):
+    def sign_status(self, user, card_info):
         self.change_status("Signature requested")
         self.sign_alert = ModalWait(self)
-        self.sign_alert.username_txt.SetLabel(user)
+        if not card_info["isYubico"]:
+            self.sign_alert.static_text_modal.SetLabel("Signing with the PIV dongle")
+        self.sign_alert.username_txt.SetLabel(f"as user : {user}")
         self.sign_alert.Restore()
         self.sign_alert.Show(True)
         self.sign_alert.gauge_wait.Pulse()

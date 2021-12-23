@@ -108,7 +108,7 @@ class ModalDialog ( wx.Dialog ):
 
         bSizer2.Add( ( 0, 10), 1, wx.EXPAND, 5 )
 
-        self.static_text_modal = wx.StaticText( self, wx.ID_ANY, u"Touch the button to sign as user", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.static_text_modal = wx.StaticText( self, wx.ID_ANY, u"Touch the button to sign", wx.DefaultPosition, wx.DefaultSize, 0 )
         self.static_text_modal.Wrap( -1 )
 
         bSizer2.Add( self.static_text_modal, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
