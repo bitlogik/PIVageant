@@ -87,13 +87,13 @@ class PIVageantwin(lib.gui.mainwin.PIVageant):
             self.print_pubkey("")
             res_gen = generate_key(DEBUG_OUTPUT)
             if res_gen == "done":
-                self.waiting_for_pivkey()
+                self.waiting_for_pivkey("genkey")
             else:
                 self.change_status(res_gen)
         else:
             self.gen_btn.Enable()
 
-    def go_start(self, ssh_pubkey):
+    def go_start(self, ssh_pubkey, close):
         self.print_pubkey(ssh_pubkey)
         process_cb = partial(
             process_command,
@@ -102,9 +102,10 @@ class PIVageantwin(lib.gui.mainwin.PIVageant):
             self.sign_status,
             self.end_status,
         )
-        self.change_status("Key read, closing to tray")
-        self.cpy_btn.Enable()
+        if close:
+            self.change_status("Key read, closing to tray")
         close_agentwindow()
+        self.cpy_btn.Enable()
         wx.CallLater(500, lib.gui.pageant_win.MainWin, process_cb)
 
     def change_status(self, text_status):
@@ -143,12 +144,16 @@ class PIVageantwin(lib.gui.mainwin.PIVageant):
     def get_event(self, event):
         # Process PIVkey events
         if event.type == "Connected":
-            self.go_start(event.data)
+            self.go_start(event.data, True)
             wx.CallLater(3500, self.change_status, "Ready")
             wx.CallLater(850, self.sendtray, None)
             return
+        if event.type == "Generated":
+            self.go_start(event.data, False)
+            wx.CallLater(250, self.change_status, "New key generated")
+            return
         if event.type == "Timeout":
-            self.waiting_for_pivkey()
+            self.waiting_for_pivkey("start")
             return
         if event.type == "Error":
             self.change_status(event.data)
@@ -164,15 +169,24 @@ class PIVageantwin(lib.gui.mainwin.PIVageant):
         self.trayicon.RemoveIcon()
         self.trayicon.Destroy()
 
-    def waiting_for_pivkey(self):
-        wx.CallLater(500, self.get_pubkey)
+    def waiting_for_pivkey(self, caller):
+        wx.CallLater(500, self.get_pubkey, caller)
 
-    def get_pubkey(self):
+    def get_pubkey(self, caller):
         try:
             piv_ssh_public_key = read_pubkey(KEY_NAME, 0.1, DEBUG_OUTPUT)
-            self.change_status("PIV key detected")
             self.gen_btn.Enable()
-            wx.PostEvent(self, PivKeyEvent(type="Connected", data=piv_ssh_public_key))
+            if caller == "start":
+                self.change_status("PIV key detected")
+                wx.PostEvent(
+                    self, PivKeyEvent(type="Connected", data=piv_ssh_public_key)
+                )
+            elif caller == "genkey":
+                wx.PostEvent(
+                    self, PivKeyEvent(type="Generated", data=piv_ssh_public_key)
+                )
+            else:
+                raise Exception("Invalid caller")
         except PIVCardTimeoutException:
             wx.PostEvent(self, PivKeyEvent(type="Timeout"))
         except PIVCardException as exc:
@@ -235,7 +249,7 @@ def mainapp():
     app.main_frame.trayicon = PIVagTray(app.main_frame, icon_file)
 
     app.main_frame.Update()
-    app.main_frame.waiting_for_pivkey()
+    app.main_frame.waiting_for_pivkey("start")
 
     app.MainLoop()
 
