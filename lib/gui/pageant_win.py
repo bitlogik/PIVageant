@@ -188,7 +188,7 @@ DT_CENTER = 1
 DT_VCENTER = 4
 
 AGENT_DATATYPE = 0x804E50BA
-CLOSE_MAGIC = randbits(32)
+CLOSE_MAGIC = randbits(31)
 class_id = 0
 
 
