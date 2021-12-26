@@ -16,6 +16,7 @@ on 27 Dec 2021
 * Debug requires -v argument
 * Update dependencies
 * Update binary building, with Pyinstaller kernel build
+* Improve Pageant window security
 
 ## 0.2.0
 
