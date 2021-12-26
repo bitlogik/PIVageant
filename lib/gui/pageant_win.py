@@ -19,7 +19,6 @@ import platform
 from secrets import randbits
 from ctypes import (
     WinDLL,
-    windll,
     wintypes,
     WinError,
     get_last_error,
@@ -121,11 +120,6 @@ user32.LoadCursorW.errcheck = errcheck
 user32.RegisterClassW.argtypes = (POINTER(WNDCLASSW),)
 user32.RegisterClassW.restype = wintypes.ATOM
 user32.RegisterClassW.errcheck = errcheck
-user32.ShowWindow.argtypes = wintypes.HWND, c_int
-user32.ShowWindow.restype = wintypes.BOOL
-user32.UpdateWindow.argtypes = (wintypes.HWND,)
-user32.UpdateWindow.restype = wintypes.BOOL
-user32.UpdateWindow.errcheck = errcheck
 user32.GetMessageW.argtypes = (
     POINTER(wintypes.MSG),
     wintypes.HWND,
@@ -137,22 +131,6 @@ user32.TranslateMessage.argtypes = (POINTER(wintypes.MSG),)
 user32.TranslateMessage.restype = wintypes.BOOL
 user32.DispatchMessageW.argtypes = (POINTER(wintypes.MSG),)
 user32.DispatchMessageW.restype = LRESULT
-user32.BeginPaint.argtypes = wintypes.HWND, POINTER(PAINTSTRUCT)
-user32.BeginPaint.restype = wintypes.HDC
-user32.BeginPaint.errcheck = errcheck
-user32.GetClientRect.argtypes = wintypes.HWND, POINTER(wintypes.RECT)
-user32.GetClientRect.restype = wintypes.BOOL
-user32.GetClientRect.errcheck = errcheck
-user32.DrawTextW.argtypes = (
-    wintypes.HDC,
-    wintypes.LPCWSTR,
-    c_int,
-    POINTER(wintypes.RECT),
-    wintypes.UINT,
-)
-user32.DrawTextW.restype = c_int
-user32.EndPaint.argtypes = wintypes.HWND, POINTER(PAINTSTRUCT)
-user32.EndPaint.restype = wintypes.BOOL
 user32.PostQuitMessage.argtypes = (c_int,)
 user32.PostQuitMessage.restype = None
 user32.DefWindowProcW.argtypes = (
@@ -165,27 +143,15 @@ user32.DefWindowProcW.restype = LRESULT
 
 CW_USEDEFAULT = -2147483648
 IDI_APPLICATION = MAKEINTRESOURCEW(32512)
-WS_CHILD = 0x40000000
 WS_OVERLAPPEDWINDOW = 13565952
 
 CS_HREDRAW = 2
 CS_VREDRAW = 1
 
 IDC_ARROW = MAKEINTRESOURCEW(32512)
-WHITE_BRUSH = 0
 
-SW_SHOWNORMAL = 1
-SW_MAXIMIZE = 3
-SW_MINIMIZE = 6
-SW_SHOWMINIMIZED = 2
-SW_RESTORE = 9
-
-WM_PAINT = 15
 WM_DESTROY = 2
 WM_COPYDATA = 74
-DT_SINGLELINE = 32
-DT_CENTER = 1
-DT_VCENTER = 4
 
 AGENT_DATATYPE = 0x804E50BA
 CLOSE_MAGIC = randbits(31)
@@ -202,7 +168,7 @@ def MainWin(callback):
             # Entry point from the SSH client
             handle_wmcopy(lParam, hwnd, callback)
             return 0
-        elif message == WM_DESTROY:
+        if message == WM_DESTROY:
             if wParam == CLOSE_MAGIC:
                 ret = user32.DestroyWindow(hwnd)
                 if ret == 0:
@@ -281,8 +247,8 @@ def handle_wmcopy(wmcp_adr, hwmn, handle_command):
 
 
 def get_window_id():
-    return windll.user32.FindWindowA(b"Pageant", b"Pageant")
+    return user32.FindWindowA(b"Pageant", b"Pageant")
 
 
 def close_window(winid):
-    windll.user32.SendMessageA(winid, WM_DESTROY, CLOSE_MAGIC, 0)
+    user32.SendMessageA(winid, WM_DESTROY, CLOSE_MAGIC, 0)
