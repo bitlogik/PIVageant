@@ -270,7 +270,7 @@ def handle_wmcopy(wmcp_adr, hwmn, handle_command):
         conn_mmap.seek(0)
         datalen = conn_mmap.read(4)
         retlen = int.from_bytes(datalen, "big")
-        if retlen > 8192:
+        if retlen > 8188:
             raise Exception("Too many data received")
         cmd_rcvd = conn_mmap.read(retlen)
         resp = handle_command(cmd_rcvd)
