@@ -3,9 +3,19 @@
 
 ## 0.3.0
 
-on 
+on 27 Dec 2021
 
-* 
+* Key generation in PIVageant GUI
+* Improve UI/UX
+* Fix clipboard copy
+* Work with EC384 or EC256
+* Compatible with ECDSA hash on card proprietary PIV
+* Add Feitian ePass key compatibility
+* Improve PIV commands methods
+* Code and folders refactoring
+* Debug requires -v argument
+* Update dependencies
+* Update binary building, with Pyinstaller kernel build
 
 ## 0.2.0
 
