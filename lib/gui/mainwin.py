@@ -17,7 +17,7 @@ import wx.xrc
 class PIVageant ( wx.Frame ):
 
     def __init__( self, parent ):
-        wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = wx.EmptyString, pos = wx.DefaultPosition, size = wx.Size( 620,360 ), style = wx.CAPTION|wx.CLOSE_BOX|wx.MINIMIZE_BOX|wx.SYSTEM_MENU|wx.TAB_TRAVERSAL )
+        wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = wx.EmptyString, pos = wx.DefaultPosition, size = wx.Size( 620,380 ), style = wx.CAPTION|wx.CLOSE_BOX|wx.MINIMIZE_BOX|wx.SYSTEM_MENU|wx.TAB_TRAVERSAL )
 
         self.SetSizeHints( wx.DefaultSize, wx.DefaultSize )
 
@@ -26,10 +26,17 @@ class PIVageant ( wx.Frame ):
         self.main_panel = wx.Panel( self, wx.ID_ANY, wx.DefaultPosition, wx.Size( -1,-1 ), wx.TAB_TRAVERSAL )
         bSizer1 = wx.BoxSizer( wx.VERTICAL )
 
+        self.m_staticText4 = wx.StaticText( self.main_panel, wx.ID_ANY, u"Public Key", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.m_staticText4.Wrap( -1 )
+
+        self.m_staticText4.SetFont( wx.Font( 10, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, False, wx.EmptyString ) )
+
+        bSizer1.Add( self.m_staticText4, 0, wx.TOP|wx.LEFT, 25 )
+
         self.pubkey_text = wx.TextCtrl( self.main_panel, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, wx.TE_CHARWRAP|wx.TE_MULTILINE|wx.TE_NO_VSCROLL|wx.TE_READONLY )
         self.pubkey_text.SetFont( wx.Font( 11, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, False, wx.EmptyString ) )
 
-        bSizer1.Add( self.pubkey_text, 1, wx.ALL|wx.EXPAND, 20 )
+        bSizer1.Add( self.pubkey_text, 1, wx.EXPAND|wx.BOTTOM|wx.RIGHT|wx.LEFT, 20 )
 
         bSizer4 = wx.BoxSizer( wx.HORIZONTAL )
 
