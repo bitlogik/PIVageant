@@ -34,7 +34,7 @@ Run *PIVageant.exe*
 
 or `python3w PIVageant.pyw` from source
 
-After detecting your PIV dongle, it hides automatically to tray if it can read a public key. Then it monitors the Pageant queries (from Putty or compatible SSH Windows clients) and redirects the signature to the PIV key.
+After detecting your PIV dongle, it hides automatically to tray if it can read a public key. Then it monitors the Pageant queries (from Putty or compatible SSH Windows Pageant clients) and redirects the signature to the PIV key.
 
 When minimized, it goes to the tray icons bar. Any click on the icon restore the window.
 
