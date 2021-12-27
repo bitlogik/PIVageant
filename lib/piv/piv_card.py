@@ -25,6 +25,7 @@ try:
     from smartcard.pcsc.PCSCExceptions import EstablishContextException
 except ModuleNotFoundError as exc:
     raise ModuleNotFoundError("pyscard not installed or was not found") from exc
+from lib.piv.compat_devices import COMPATIBLE_CARDS_ATR
 
 
 # Exception classes for PIVcard
@@ -189,19 +190,6 @@ def encode_do(do_data):
 
 PIV_AID = "A0 00 00 03 08 00 00 10 00 01 00"
 
-COMPATIBLE_CARDS_HEX = [
-    # Yubico Yubikey Neo
-    "3B FC 13 00 00 81 31 FE 15 59 75 62 69 6B 65 79 4E 45 4F 72 33 E1",
-    # Yubico Yubikey 4
-    "3B F8 13 00 00 81 31 FE 15 59 75 62 69 6B 65 79 34 D4",
-    # Yubico Yubikey 5
-    "3B FD 13 00 00 81 31 FE 15 80 73 C0 21 C0 57 59 75 62 69 4B 65 79 40",
-    # Yubico Yubikey 5 VCI
-    "12 78 B3 84 00 80 73 C0 21 C0 57 59 75 62 69 4B 65 79",
-    # Feitian ePass
-    "3B DD 18 00 81 91 FE 1F C3 00 66 46 53 08 03 00 36 71 DF 00 00 80 97",
-]
-
 
 class CardsATRList:
     """A kind of CardType class to use a list of different possibles ATRs"""
@@ -239,7 +227,7 @@ ALG_ECP384_SHA384 = 0xF4
 class PIVcard:
 
     AppID = toBytes(PIV_AID)
-    compat_cards = [toBytes(atr) for atr in COMPATIBLE_CARDS_HEX]
+    compat_cards = [toBytes(atr) for atr in COMPATIBLE_CARDS_ATR]
 
     def __init__(self, connect_timeout, debug=False):
         self.debug = debug

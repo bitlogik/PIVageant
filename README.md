@@ -14,7 +14,7 @@ Compatible with :
 * Feitian [ePass Plus PIV](https://shop.ftsafe.us/collections/fido2/piv)
 
 Potentially with any PIV card or USB dongle.  
-What is needed is to list the dongle/card ATR in COMPATIBLE_CARDS_HEX in lib/piv/piv_card.
+What is needed is to list the dongle/card ATR in COMPATIBLE_CARDS_ATR in /lib/piv/compat_devices.py.
 
 ## Use
 
