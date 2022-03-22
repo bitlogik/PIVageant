@@ -11,7 +11,7 @@ RMDIR /S /Q build
 RMDIR /S /Q pivenv
 
 
-SET PYINSTALLER_VER=4.7
+SET PYINSTALLER_VER=4.10
 
 REM Detect if run in Github Action
 IF "%GITHUB_ACTION%"=="" (

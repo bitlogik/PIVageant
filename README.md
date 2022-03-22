@@ -53,9 +53,9 @@ To run from source :
 
 or install :
 
-* Python3 >= 3.6
+* Python3 >= 3.6.1
 * wxPython 4.1.1
-* pyscard 2.0.1
+* pyscard 2
 * cryptography 36.0.1
 
 To build the binaries, you need Python 3.9 and Pyinstaller. Start the Build-Windows.bat script in the *package* directory. Output result in the *dist* directory.
