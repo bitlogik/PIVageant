@@ -1,6 +1,13 @@
 
 # PIVageant changes log
 
+## 0.4.0
+
+on 22 Mar 2022
+
+* Allow PIV device change without restart
+* Update scard dependency
+
 ## 0.3.0
 
 on 27 Dec 2021

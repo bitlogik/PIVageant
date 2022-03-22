@@ -38,6 +38,9 @@ After detecting your PIV dongle, it hides automatically to tray if it can read a
 
 When minimized, it goes to the tray icons bar. Any click on the icon restore the window.
 
+You can change the current PIV device, after the new PIV key device was plugged in place of the other one :  
+Maximize PIVageant (click on the tray icon), then click on the "Refresh" button.
+
 ### Generate a key in a YubiKey
 
 Click on the "+ new key" button in PIVageant, then confirm.
