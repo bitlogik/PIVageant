@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 # PIVageant : Seek Windows class and name
-# Copyright (C) 2021  BitLogiK
+# Copyright (C) 2021-2022  BitLogiK
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by

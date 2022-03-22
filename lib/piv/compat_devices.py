@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 # PIV smartcards compatible ATRs list
-# Copyright (C) 2021  BitLogiK
+# Copyright (C) 2021-2022  BitLogiK
 
 
 COMPATIBLE_CARDS_ATR = [

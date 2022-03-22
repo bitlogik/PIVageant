@@ -3,7 +3,7 @@
 
 # PIVageant
 # a Windows Pageant SSH agent with PIV dongle
-# Copyright (C) 2021  BitLogiK
+# Copyright (C) 2021-2022  BitLogiK
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
