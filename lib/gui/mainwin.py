@@ -47,7 +47,16 @@ class PIVageant ( wx.Frame ):
         bSizer4.Add( self.cpy_btn, 0, wx.ALIGN_CENTER_HORIZONTAL|wx.ALIGN_CENTER_VERTICAL|wx.ALL, 3 )
 
 
-        bSizer4.Add( ( 80, 0), 0, 0, 5 )
+        bSizer4.Add( ( 50, 0), 0, 0, 5 )
+
+        self.refresh_btn = wx.Button( self.main_panel, wx.ID_ANY, u"Refresh", wx.DefaultPosition, wx.Size( 120,50 ), 0 )
+        self.refresh_btn.SetFont( wx.Font( 12, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, False, wx.EmptyString ) )
+        self.refresh_btn.Enable( False )
+
+        bSizer4.Add( self.refresh_btn, 0, wx.ALL, 5 )
+
+
+        bSizer4.Add( ( 50, 0), 1, wx.EXPAND, 5 )
 
         self.gen_btn = wx.Button( self.main_panel, wx.ID_ANY, u"+ new key", wx.DefaultPosition, wx.Size( -1,40 ), 0 )
         self.gen_btn.SetFont( wx.Font( 12, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, False, wx.EmptyString ) )
@@ -61,7 +70,7 @@ class PIVageant ( wx.Frame ):
 
         bSizer1.Add( ( 0, 12), 0, 0, 5 )
 
-        self.status_text = wx.StaticText( self.main_panel, wx.ID_ANY, u"Connect a PIV device", wx.DefaultPosition, wx.Size( 400,-1 ), wx.ALIGN_CENTER_HORIZONTAL|wx.ST_NO_AUTORESIZE )
+        self.status_text = wx.StaticText( self.main_panel, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 400,-1 ), wx.ALIGN_CENTER_HORIZONTAL|wx.ST_NO_AUTORESIZE )
         self.status_text.Wrap( -1 )
 
         self.status_text.SetFont( wx.Font( 16, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, False, wx.EmptyString ) )
@@ -85,6 +94,7 @@ class PIVageant ( wx.Frame ):
 
         # Connect Events
         self.cpy_btn.Bind( wx.EVT_BUTTON, self.copy_content )
+        self.refresh_btn.Bind( wx.EVT_BUTTON, self.refresh_key )
         self.gen_btn.Bind( wx.EVT_BUTTON, self.gen_key )
 
     def __del__( self ):
@@ -93,6 +103,9 @@ class PIVageant ( wx.Frame ):
 
     # Virtual event handlers, overide them in your derived class
     def copy_content( self, event ):
+        event.Skip()
+
+    def refresh_key( self, event ):
         event.Skip()
 
     def gen_key( self, event ):

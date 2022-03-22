@@ -68,6 +68,18 @@ class PIVageantwin(lib.gui.mainwin.PIVageant):
                 wx.TheClipboard.Flush()
                 self.change_status("Public key in clipboard")
                 wx.CallLater(800, self.change_status, "Ready")
+        evt.Skip()
+
+    def clear(self):
+        self.gen_btn.Disable()
+        self.refresh_btn.Disable()
+        self.cpy_btn.Disable()
+        self.pubkey_text.SetValue("")
+        self.change_status("Connect a PIV device")
+
+    def refresh_key(self, evt):
+        evt.Skip()
+        self.waiting_for_pivkey("start")
 
     def gen_key(self, evt):
         evt.Skip()
@@ -82,6 +94,7 @@ class PIVageantwin(lib.gui.mainwin.PIVageant):
         )
         confirm_modal.SetYesNoLabels("Proceed", "cancel")
         if confirm_modal.ShowModal() == wx.ID_YES:
+            self.refresh_btn.Disable()
             self.cpy_btn.Disable()
             self.change_status("Key generation ...")
             self.print_pubkey("")
@@ -105,6 +118,7 @@ class PIVageantwin(lib.gui.mainwin.PIVageant):
         if close:
             self.change_status("Key read, closing to tray")
         close_agentwindow()
+        self.refresh_btn.Enable()
         self.cpy_btn.Enable()
         wx.CallLater(500, lib.gui.pageant_win.MainWin, process_cb)
 
@@ -242,6 +256,7 @@ def mainapp():
     app.main_frame.SetTitle(f"PIVageant  -  {__version__}")
     icon_file = get_path("res\\pivageant.ico")
     app.main_frame.SetIcons(wx.IconBundle(icon_file))
+    app.main_frame.clear()
     app.main_frame.Show()
     app.main_frame.Bind(wx.EVT_CLOSE, app.main_frame.closing)
     app.main_frame.Bind(wx.EVT_ICONIZE, app.main_frame.sendtray)
