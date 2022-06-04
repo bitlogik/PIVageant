@@ -178,10 +178,10 @@ class PIVageantwin(lib.gui.mainwin.PIVageant):
 
     def closing(self, event):
         close_agentwindow()
-        if hasattr(event, "Skip"):
-            event.Skip()
         self.trayicon.RemoveIcon()
         self.trayicon.Destroy()
+        if hasattr(event, "Skip"):
+            event.Skip()
 
     def waiting_for_pivkey(self, caller):
         wx.CallLater(500, self.get_pubkey, caller)
