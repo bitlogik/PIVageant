@@ -205,7 +205,7 @@ class PIVageantwin(lib.gui.mainwin.PIVageant):
             wx.PostEvent(self, PivKeyEvent(type="Timeout"))
         except PIVCardException as exc:
             err_msg = str(exc)
-            if err_msg == "Error status : 0x6A82":
+            if err_msg == "Error status : 0x6A82" or err_msg == "Error status : 0x6A83":
                 self.gen_btn.Enable()
                 wx.PostEvent(
                     self, PivKeyEvent(type="Error", data="No key found, generate a key")
