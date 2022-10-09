@@ -12,6 +12,7 @@ Compatible with :
 * Yubico Yubikey Neo
 * Yubico Yubikey 4 series
 * Feitian [ePass Plus PIV](https://shop.ftsafe.us/collections/fido2/piv)
+* Feitian [BioPass FIDO2 Plus](https://www.ftsafe.com/Products/FIDO/Bio)
 
 Potentially with any PIV card or USB dongle.  
 What is needed is to list the dongle/card ATR in COMPATIBLE_CARDS_ATR in /lib/piv/compat_devices.py.
@@ -31,8 +32,6 @@ bringing even greater confidence in the integrity of the software.
 Start the agent :
 
 Run *PIVageant.exe*
-
-or `python3w PIVageant.pyw` from source
 
 After detecting your PIV dongle, it hides automatically to tray if it can read a public key. Then it monitors the Pageant queries (from Putty or compatible SSH Windows Pageant clients) and redirects the signature to the PIV key.
 
