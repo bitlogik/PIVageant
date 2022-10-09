@@ -188,7 +188,7 @@ class PIVageantwin(lib.gui.mainwin.PIVageant):
 
     def get_pubkey(self, caller):
         try:
-            piv_ssh_public_key = read_pubkey(KEY_NAME, 0.1, DEBUG_OUTPUT)
+            piv_ssh_public_key = read_pubkey(KEY_NAME, 0.8, DEBUG_OUTPUT)
             self.gen_btn.Enable()
             if caller == "start":
                 self.change_status("PIV key detected")

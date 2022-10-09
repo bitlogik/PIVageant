@@ -245,6 +245,7 @@ class PIVcard:
                 raise ConnectionException("Can't start Scard service")
             raise exc
         self.cardservice.connection.connect()
+        time.sleep(0.25)
         apdu_select = [
             0x00,
             0xA4,
