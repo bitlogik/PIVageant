@@ -26,7 +26,7 @@ setup(
     license="GPLv3",
     python_requires=">=3.6.1",
     install_requires=[
-        "wxPython==4.1.1",
+        "wxPython==4.2.0",
         "cryptography>=36.0.1",
         "pyscard==2.0.3",
     ],
