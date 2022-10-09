@@ -443,7 +443,7 @@ class PIVcard:
         gen_resp = self.send_command(apdu_command, data)
         if gen_resp[:2] != [0x7F, 0x49] or len(gen_resp) != gen_resp[2] + 3:
             raise DataException("Bad data received from Generate Asymmetric command")
-        # if ECC (11 ou  14) -> gen_resp[2] == 0x86
+        # if ECC (11 or 14) -> gen_resp[2] == 0x86
         # if ECC384, keyalg = 0x14 -> gen_resp[4]:keylen == 97
         # return public key data, for ECC 86 : 04 ..
         return decode_dol(gen_resp[3:])
