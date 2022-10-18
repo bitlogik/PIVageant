@@ -278,16 +278,22 @@ class PIVcard:
         self.yubi_version = self.yubi_get_version()
         self.is_yubico = bool(self.yubi_version)
         if self.is_yubico:
-            self.yubi_serial = self.get_serial()
+            try:
+                self.yubi_serial = self.get_serial()
+            except PIVCardException:
+                pass
         if self.debug:
             print("PIV key connected :", self.label)
             if self.is_yubico:
                 print(
                     " Yubico device version",
                     self.yubi_version,
-                    "with serial =",
-                    self.yubi_serial,
                 )
+                if self.yubi_serial:
+                    print(
+                        "with serial =",
+                        self.yubi_serial,
+                    )
             print(" Algorithms supported :", [f"0x{alg:02X}" for alg in self.algos])
             print(" Secure Messaging capable ?", "yes" if self.sm_capable else "no")
         time.sleep(0.25)
