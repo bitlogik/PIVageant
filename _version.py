@@ -3,4 +3,4 @@
 # major.minor.micro
 # can be overridden by git tag in CI/CD compilation
 
-__version__ = "0.4.0"
+__version__ = "0.5.0"

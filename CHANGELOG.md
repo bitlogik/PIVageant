@@ -1,6 +1,16 @@
 
 # PIVageant changes log
 
+## 0.5.0
+
+on 18 Oct 2022
+
+* Add Feitian BioPass FIDO2 Plus
+* Improve compatibility with Yubico
+* Fix close lock
+* Cacth a connection exception
+* Update wx
+
 ## 0.4.0
 
 on 22 Mar 2022

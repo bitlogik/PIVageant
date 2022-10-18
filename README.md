@@ -56,7 +56,7 @@ To run from source :
 or install :
 
 * Python3 >= 3.6.1
-* wxPython 4.1.1
+* wxPython 4.2.0
 * pyscard 2
 * cryptography 36.0.1
 
