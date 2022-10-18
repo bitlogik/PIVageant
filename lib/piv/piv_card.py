@@ -21,7 +21,7 @@ from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 try:
     from smartcard.CardRequest import CardRequest
     from smartcard.util import toBytes, toHexString
-    from smartcard.Exceptions import CardRequestTimeoutException
+    from smartcard.Exceptions import CardRequestTimeoutException, CardConnectionException
     from smartcard.pcsc.PCSCExceptions import EstablishContextException
 except ModuleNotFoundError as exc:
     raise ModuleNotFoundError("pyscard not installed or was not found") from exc
@@ -244,6 +244,8 @@ class PIVcard:
             ):
                 raise ConnectionException("Can't start Scard service")
             raise exc
+        except CardConnectionException as exc:
+            raise ConnectionException(str(exc))
         self.cardservice.connection.connect()
         time.sleep(0.25)
         apdu_select = [
